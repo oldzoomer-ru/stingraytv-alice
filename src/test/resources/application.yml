@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: stingraytv-alice
+
+jwt:
+  secret: change_this_secret_change_this_secret
+  expires-in: 3600
+
+app:
+  stingray:
+    device-id: stingray-tv-001
+    device-name: Триколор
+    device-description: Спутниковый ресивер Триколора
+    room: Зал
+
+logging:
+  level:
+    ru.oldzoomer: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.boot.context.properties: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"

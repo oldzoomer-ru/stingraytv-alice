@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: stingraytv-alice
+
+logging:
+  level:
+    ru.oldzoomer.stingraytv_alice: INFO
+    org.springframework.web: WARN
+    org.springframework.boot.context.properties: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
+
+app:
+  stingray:
+    device-id: ${STINGRAY_DEVICE_ID:stingray-tv-001}
+    device-name: ${STINGRAY_DEVICE_MAME:Триколор}
+    device-description: ${STINGRAY_DEVICE_DESCRIPTION:Спутниковый ресивер Триколора}
+    room: ${STINGRAY_ROOM:Зал}
+
+jwt:
+  secret: ${JWT_SECRET:change_this_secret_change_this_secret}
+  expires-in: ${JWT_EXPIRES_IN:3600}
+
+oauth:
+  clients:
+    client-id: yandex-alice
+    redirect-uris: https://social.yandex.net/broker/redirect

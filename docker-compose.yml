@@ -1,0 +1,14 @@
+services:
+  stingraytv-alice:
+    build: .
+    container_name: stingraytv-alice
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    networks:
+      - stingraytv-network
+
+networks:
+  stingraytv-network:
+    driver: bridge
