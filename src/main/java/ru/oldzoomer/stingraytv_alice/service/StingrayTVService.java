@@ -16,11 +16,11 @@ import java.util.Map;
 public class StingrayTVService {
 
     private final RestClient restClient;
-    private final StingrayDeviceDiscoveryService deviceDiscoveryService;
+    private final StingrayDeviceDiscoveryService.Device device;
 
     public PowerState getPowerState() {
         try {
-            String baseUrl = deviceDiscoveryService.discoverStingrayDevice().baseUrl();
+            String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 return PowerState.builder().state("offline").build();
             }
@@ -51,7 +51,7 @@ public class StingrayTVService {
 
     public boolean setPowerState(boolean powerOn) {
         try {
-            String baseUrl = deviceDiscoveryService.discoverStingrayDevice().baseUrl();
+            String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 return false;
             }
@@ -74,7 +74,7 @@ public class StingrayTVService {
 
     public VolumeState getVolumeState() {
         try {
-            String baseUrl = deviceDiscoveryService.discoverStingrayDevice().baseUrl();
+            String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 return VolumeState.builder().state(0).build();
             }
@@ -108,7 +108,7 @@ public class StingrayTVService {
 
     public boolean setVolume(int volume) {
         try {
-            String baseUrl = deviceDiscoveryService.discoverStingrayDevice().baseUrl();
+            String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 return false;
             }
@@ -130,7 +130,7 @@ public class StingrayTVService {
 
     public ChannelState getCurrentChannel() {
         try {
-            String baseUrl = deviceDiscoveryService.discoverStingrayDevice().baseUrl();
+            String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 return ChannelState.builder().channelNumber(0).channelListId("Unknown").build();
             }
@@ -168,7 +168,7 @@ public class StingrayTVService {
 
     public boolean changeChannel(int channelNumber) {
         try {
-            String baseUrl = deviceDiscoveryService.discoverStingrayDevice().baseUrl();
+            String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 return false;
             }

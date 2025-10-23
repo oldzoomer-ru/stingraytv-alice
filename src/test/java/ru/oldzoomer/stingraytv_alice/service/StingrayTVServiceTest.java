@@ -1,8 +1,8 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClient;
@@ -19,7 +19,7 @@ class StingrayTVServiceTest {
     @Mock
     private RestClient restClient;
     @Mock
-    private StingrayDeviceDiscoveryService deviceDiscoveryService;
+    private StingrayDeviceDiscoveryService.Device device;
     @Mock
     private RestClient.RequestBodyUriSpec requestBodyUriSpec;
     @SuppressWarnings("rawtypes")
@@ -27,18 +27,14 @@ class StingrayTVServiceTest {
     private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
     @Mock
     private RestClient.ResponseSpec responseSpec;
-    private StingrayTVService stingrayTVService;
 
-    @BeforeEach
-    void setUp() {
-        stingrayTVService = new StingrayTVService(restClient, deviceDiscoveryService);
-        when(deviceDiscoveryService.discoverStingrayDevice())
-                .thenReturn(new StingrayDeviceDiscoveryService.Device(BASE_URL, "GS B523L"));
-    }
+    @InjectMocks
+    private StingrayTVService stingrayTVService;
 
     @Test
     void getPowerState_WhenDeviceFound_ReturnsPowerState() {
         // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
         //noinspection unchecked
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(eq(BASE_URL + "/power"))).thenReturn(requestHeadersUriSpec);
@@ -52,7 +48,6 @@ class StingrayTVServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals("on", result.getState());
-        verify(deviceDiscoveryService).discoverStingrayDevice();
     }
 
     @Test
@@ -68,6 +63,7 @@ class StingrayTVServiceTest {
     @Test
     void setPowerState_WhenDeviceFound_ReturnsTrue() {
         // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
         when(restClient.put()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(eq(BASE_URL + "/power"))).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
@@ -80,7 +76,6 @@ class StingrayTVServiceTest {
 
         // Assert
         assertTrue(result);
-        verify(deviceDiscoveryService).discoverStingrayDevice();
     }
 
     @Test
@@ -95,6 +90,7 @@ class StingrayTVServiceTest {
     @Test
     void getVolumeState_WhenDeviceFound_ReturnsVolumeState() {
         // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
         //noinspection unchecked
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(eq(BASE_URL + "/volume"))).thenReturn(requestHeadersUriSpec);
@@ -113,6 +109,7 @@ class StingrayTVServiceTest {
     @Test
     void setVolume_WithValidVolume_ReturnsTrue() {
         // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
         when(restClient.put()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(eq(BASE_URL + "/volume"))).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
@@ -137,6 +134,7 @@ class StingrayTVServiceTest {
     @Test
     void getCurrentChannel_WhenDeviceFound_ReturnsChannelState() {
         // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
         //noinspection unchecked
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(eq(BASE_URL + "/channels/current"))).thenReturn(requestHeadersUriSpec);
@@ -156,6 +154,7 @@ class StingrayTVServiceTest {
     @Test
     void changeChannel_WithValidChannel_ReturnsTrue() {
         // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
         when(restClient.put()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(eq(BASE_URL + "/channels/current"))).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
