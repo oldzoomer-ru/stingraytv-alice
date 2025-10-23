@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins:*}")
     private String corsAllowedOrigins;
 
-    @Value("${cors.allowed-methods:GET,POST,PUT,DELETE,OPTIONS}")
+    @Value("${cors.allowed-methods:GET,POST,HEAD}")
     private String corsAllowedMethods;
 
     /**

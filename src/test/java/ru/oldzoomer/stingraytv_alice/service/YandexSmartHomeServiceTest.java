@@ -3,6 +3,7 @@ package ru.oldzoomer.stingraytv_alice.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,11 +30,11 @@ class YandexSmartHomeServiceTest {
     @Mock
     private YandexSmartHomeGateway smartHomeGateway;
 
+    @InjectMocks
     private YandexSmartHomeService smartHomeService;
 
     @BeforeEach
     void setUp() {
-        smartHomeService = new YandexSmartHomeService(smartHomeGateway);
         SecurityContextHolder.clearContext();
     }
 
