@@ -133,7 +133,7 @@ class YandexSmartHomeControllerTest {
         // Act & Assert
         mockMvc.perform(post("/v1.0/user/unlink")
                         .header("X-Request-Id", requestId))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -11,15 +11,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,9 +31,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
     @Value("${cors.allowed-origins:*}")
     private String corsAllowedOrigins;
 
@@ -49,7 +43,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         log.info("Configuring CORS with allowed origins: {}", corsAllowedOrigins);
-        
+
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Configure allowed origins
@@ -72,18 +66,6 @@ public class SecurityConfig {
         return source;
     }
 
-    /**
-     * JWT decoder for OAuth2 resource server
-     */
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        log.info("Configuring JWT decoder with secret key");
-
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        SecretKeySpec key = new SecretKeySpec(keyBytes, "HmacSHA256");
-
-        return NimbusJwtDecoder.withSecretKey(key).build();
-    }
 
     /**
      * Main security filter chain configuration
@@ -91,7 +73,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         log.info("Configuring security filter chain");
-        
+
+        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
+                new OAuth2AuthorizationServerConfigurer();
+
         http
                 // CORS configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -124,10 +109,11 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
 
+                // OAuth2 authorization server configuration
+                .with(authorizationServerConfigurer, Customizer.withDefaults())
+
                 // OAuth2 resource server configuration
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
-                )
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
 
                 // Exception handling
                 .exceptionHandling(exception -> exception
