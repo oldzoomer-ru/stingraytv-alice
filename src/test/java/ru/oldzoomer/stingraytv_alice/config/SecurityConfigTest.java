@@ -37,7 +37,8 @@ class SecurityConfigTest {
         // /login endpoint is now handled by YandexOAuthController
         mockMvc.perform(get("/oauth/authorize")
                         .param("response_type", "code")
-                        .param("client_id", "test-client")
+                        .param("client_id", "yandex-alice")
+                        .param("redirect_uri", "https://social.yandex.net/broker/redirect")
                         .param("state", "test-state"))
                 .andExpect(status().isOk());
 
@@ -66,7 +67,8 @@ class SecurityConfigTest {
         mockMvc.perform(get("/oauth/authorize")
                         .header("Origin", "http://localhost:3000")
                         .param("response_type", "code")
-                        .param("client_id", "test-client")
+                        .param("client_id", "yandex-alice")
+                        .param("redirect_uri", "https://social.yandex.net/broker/redirect")
                         .param("state", "test-state"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.header().string("Access-Control-Allow-Origin", "http://localhost:3000"));
@@ -74,7 +76,8 @@ class SecurityConfigTest {
         mockMvc.perform(get("/oauth/authorize")
                         .header("Origin", "https://example.com")
                         .param("response_type", "code")
-                        .param("client_id", "test-client")
+                        .param("client_id", "yandex-alice")
+                        .param("redirect_uri", "https://social.yandex.net/broker/redirect")
                         .param("state", "test-state"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.header().string("Access-Control-Allow-Origin", "https://example.com"));

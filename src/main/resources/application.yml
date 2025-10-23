@@ -23,5 +23,5 @@ jwt:
 
 oauth:
   clients:
-    client-id: yandex-alice
-    redirect-uris: https://social.yandex.net/broker/redirect
+    - client-id: yandex-alice
+      redirect-uris: https://social.yandex.net/broker/redirect
