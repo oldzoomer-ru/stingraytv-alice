@@ -58,9 +58,7 @@ public class ClientCredentialsService {
             // Check if credentials already exist in Preferences API
             if (preferencesStorageService.hasClientToken(clientId)) {
                 log.info("Using existing client credentials for client: {}", clientId);
-                preferencesStorageService.getClientSecret(clientId).ifPresent(secret -> {
-                    clientSecret.put(client, secret);
-                });
+                preferencesStorageService.getClientSecret(clientId).ifPresent(secret -> clientSecret.put(client, secret));
             } else {
                 // Generate new secure client secret
                 SecureRandom random = new SecureRandom();
