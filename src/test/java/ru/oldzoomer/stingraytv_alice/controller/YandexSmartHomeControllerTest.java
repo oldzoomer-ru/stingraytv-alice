@@ -3,14 +3,16 @@ package ru.oldzoomer.stingraytv_alice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.oldzoomer.stingraytv_alice.config.SecurityConfig;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.UserUnlinkResponse;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
@@ -23,8 +25,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest
+@Import({
+        SecurityConfig.class
+})
 class YandexSmartHomeControllerTest {
 
     @Autowired
@@ -34,7 +38,13 @@ class YandexSmartHomeControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
+    private JwtDecoder jwtDecoder;
+
+    @MockitoBean
     private YandexSmartHomeService smartHomeService;
+
+    @MockitoBean
+    private YandexOAuthController yandexOAuthController;
 
     @Test
     void getUserDevices_ValidRequest_ReturnsOk() throws Exception {
@@ -115,7 +125,7 @@ class YandexSmartHomeControllerTest {
                 .requestId(requestId)
                 .build();
 
-        when(smartHomeService.processUserUnlinkRequest(requestId)).thenReturn(response);
+        when(smartHomeService.processUserUnlinkRequest()).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(post("/v1.0/user/unlink")

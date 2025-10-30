@@ -88,9 +88,8 @@ public class YandexSmartHomeService {
     /**
      * Create error response for validation errors
      */
-    public YandexSmartHomeResponse createValidationErrorResponse(String requestId) {
+    public YandexSmartHomeResponse createValidationErrorResponse() {
         return YandexSmartHomeResponse.builder()
-                .requestId(requestId)
                 .status("error")
                 .errorCode("VALIDATION_ERROR")
                 .errorMessage("Invalid request parameters")
@@ -100,9 +99,8 @@ public class YandexSmartHomeService {
     /**
      * Create error response for internal errors
      */
-    public YandexSmartHomeResponse createInternalErrorResponse(String requestId) {
+    public YandexSmartHomeResponse createInternalErrorResponse() {
         return YandexSmartHomeResponse.builder()
-                .requestId(requestId)
                 .status("error")
                 .errorCode("INTERNAL_ERROR")
                 .errorMessage("Internal server error")
@@ -115,10 +113,10 @@ public class YandexSmartHomeService {
      * The user token should be revoked regardless of response correctness
      */
     @PreAuthorize("isAuthenticated()")
-    public UserUnlinkResponse processUserUnlinkRequest(String requestId) {
+    public UserUnlinkResponse processUserUnlinkRequest() {
         String userId = getCurrentUserId().orElse("unknown");
 
-        log.info("Processing user unlink request from user: {}, request_id: {}", userId, requestId);
+        log.info("Processing user unlink request from user: {}", userId);
 
         // Log the unlink event for investigation
         log.warn("User {} initiated account unlink. Token should be revoked.", userId);
@@ -128,7 +126,14 @@ public class YandexSmartHomeService {
         // In a real implementation, we would revoke the token here
 
         return UserUnlinkResponse.builder()
-                .requestId(requestId)
+                .build();
+    }
+
+    public YandexSmartHomeResponse createMissingParameterErrorResponse() {
+        return YandexSmartHomeResponse.builder()
+                .status("error")
+                .errorCode("MISSING_PARAMETER_ERROR")
+                .errorMessage("missing parameter")
                 .build();
     }
 }

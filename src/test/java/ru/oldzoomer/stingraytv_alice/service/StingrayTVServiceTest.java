@@ -16,15 +16,20 @@ import static org.mockito.Mockito.*;
 class StingrayTVServiceTest {
 
     private static final String BASE_URL = "http://192.168.1.100:50000";
+
     @Mock
     private RestClient restClient;
+
     @Mock
     private StingrayDeviceDiscoveryService.Device device;
+
     @Mock
     private RestClient.RequestBodyUriSpec requestBodyUriSpec;
+
     @SuppressWarnings("rawtypes")
     @Mock
     private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
+
     @Mock
     private RestClient.ResponseSpec responseSpec;
 
