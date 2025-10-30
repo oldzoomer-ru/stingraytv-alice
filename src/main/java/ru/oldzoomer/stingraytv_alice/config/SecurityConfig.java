@@ -2,7 +2,6 @@ package ru.oldzoomer.stingraytv_alice.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -11,17 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Security configuration for Yandex Smart Home integration.
@@ -33,57 +23,7 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${cors.allowed-origins:*}")
-    private String corsAllowedOrigins;
-
-    @Value("${cors.allowed-methods:GET,POST,PUT,DELETE,OPTIONS}")
-    private String corsAllowedMethods;
-
-    /**
-     * CORS configuration for cross-origin requests
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        log.info("Configuring CORS with allowed origins: {}", corsAllowedOrigins);
-        
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        // Configure allowed origins
-        if ("*".equals(corsAllowedOrigins)) {
-            configuration.setAllowedOriginPatterns(List.of("*"));
-        } else {
-            configuration.setAllowedOrigins(Arrays.asList(corsAllowedOrigins.split(",")));
-        }
-
-        // Configure allowed methods
-        configuration.setAllowedMethods(Arrays.asList(corsAllowedMethods.split(",")));
-
-        // Configure allowed headers and credentials
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
-    /**
-     * JWT decoder for OAuth2 resource server
-     */
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        log.info("Configuring JWT decoder with secret key");
-
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        SecretKeySpec key = new SecretKeySpec(keyBytes, "HmacSHA256");
-
-        return NimbusJwtDecoder.withSecretKey(key).build();
-    }
+    private final CorsConfigurationSource corsConfigurationSource;
 
     /**
      * Main security filter chain configuration
@@ -91,10 +31,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         log.info("Configuring security filter chain");
-        
+
         http
                 // CORS configuration
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
                 // Disable CSRF for stateless API
                 .csrf(AbstractHttpConfigurer::disable)
