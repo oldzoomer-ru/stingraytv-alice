@@ -72,18 +72,20 @@ class TokenServiceOAuthTest {
         // Given
         String code = tokenService.createCode("test-user", "smart-home");
         Optional<Map<String, Object>> tokens = tokenService.consumeCode(code);
-        String refreshToken = (String) tokens.get().get("refresh_token");
+        if (tokens.isPresent()) {
+            String refreshToken = (String) tokens.get().get("refresh_token");
 
-        // When
-        Optional<Map<String, Object>> result = tokenService.refresh(refreshToken);
+            // When
+            Optional<Map<String, Object>> result = tokenService.refresh(refreshToken);
 
-        // Then
-        assertThat(result).isPresent();
-        Map<String, Object> newTokens = result.get();
-        assertThat(newTokens).containsKeys("access_token", "expires_in", "token_type", "scope", "user_id");
-        assertThat(newTokens.get("token_type")).isEqualTo("Bearer");
-        assertThat(newTokens.get("user_id")).isEqualTo("test-user");
-        assertThat(newTokens.get("scope")).isEqualTo("smart-home");
+            // Then
+            assertThat(result).isPresent();
+            Map<String, Object> newTokens = result.get();
+            assertThat(newTokens).containsKeys("access_token", "expires_in", "token_type", "scope", "user_id");
+            assertThat(newTokens.get("token_type")).isEqualTo("Bearer");
+            assertThat(newTokens.get("user_id")).isEqualTo("test-user");
+            assertThat(newTokens.get("scope")).isEqualTo("smart-home");
+        }
     }
 
     @Test

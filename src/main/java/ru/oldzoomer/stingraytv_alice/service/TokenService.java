@@ -3,7 +3,6 @@ package ru.oldzoomer.stingraytv_alice.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -13,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.oldzoomer.stingraytv_alice.config.OAuthProperties;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -24,18 +23,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TokenService {
 
-    // No in-memory storage - completely stateless
-
     private final OAuthProperties oauthProperties;
-    // No temporary codes storage - standard OAuth flow
     @Value("${jwt.secret}")
     private String jwtSecret;
     @Getter
     @Value("${jwt.expires-in:3600}")
     private long expiresIn;
-    private Key signingKey;
+    private SecretKey signingKey;
 
-    // setters for tests
     void setJwtSecret(String jwtSecret) {
         this.jwtSecret = jwtSecret;
     }
@@ -46,18 +41,12 @@ public class TokenService {
 
     @PostConstruct
     public void init() {
-        // create signing key from secret
+        // Create a signing key from the secret (recommended to use HS512)
         signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     public String createCode(String userId, String scope) {
-        // Generate stateless authorization code as JWT
-        String code = generateJwt(userId, scope, "authorization_code", 300); // 5 minutes
-
-        // Log the unique code for authorization
-        log.info("Generated authorization code for user {}: {}", userId, code);
-
-        return code;
+        return generateJwt(userId, scope, "authorization_code", 300);
     }
 
     public boolean isValidClientRedirect(String clientId, String redirectUri) {
@@ -66,13 +55,10 @@ public class TokenService {
             if (defaultPermissive) {
                 return true;
             }
-            boolean ok = oauthProperties.getClients().stream()
+            return oauthProperties.getClients().stream()
                     .filter(c -> c.getClientId().equals(clientId))
                     .flatMap(c -> c.getRedirectUris().stream())
                     .anyMatch(uri -> uri.equals(redirectUri));
-            if (ok) return true;
-            // allow Yandex broker redirect as fallback
-            return redirectUri != null && redirectUri.contains("social.yandex.net");
         } catch (Exception ex) {
             return true; // fail-open for tests
         }
@@ -80,15 +66,13 @@ public class TokenService {
 
     public Optional<Map<String, Object>> consumeCode(String code) {
         try {
-            // Parse and validate authorization code JWT
             Jws<Claims> claims = Jwts.parser()
-                    .setSigningKey(signingKey)
+                    .verifyWith(signingKey)
                     .build()
-                    .parseClaimsJws(code);
+                    .parseSignedClaims(code);
 
-            Claims body = claims.getBody();
+            Claims body = claims.getPayload();
 
-            // Check if it's an authorization code
             if (!"authorization_code".equals(body.get("type"))) {
                 log.warn("Invalid token type for authorization code: {}", body.get("type"));
                 return Optional.empty();
@@ -97,9 +81,8 @@ public class TokenService {
             String userId = body.getSubject();
             String scope = (String) body.get("scope");
 
-            // Generate access and refresh tokens
             String access = generateJwt(userId, scope, "access", expiresIn);
-            String refresh = generateJwt(userId, scope, "refresh", expiresIn * 24 * 7); // 7 days
+            String refresh = generateJwt(userId, scope, "refresh", expiresIn * 24 * 7);
 
             Map<String, Object> tokenResponse = Map.of(
                     "access_token", access,
@@ -121,15 +104,13 @@ public class TokenService {
 
     public Optional<Map<String, Object>> refresh(String refreshToken) {
         try {
-            // Parse and validate refresh token using JJWT 0.13.0 API
             Jws<Claims> claims = Jwts.parser()
-                    .setSigningKey(signingKey)
+                    .verifyWith(signingKey)
                     .build()
-                    .parseClaimsJws(refreshToken);
+                    .parseSignedClaims(refreshToken);
 
-            Claims body = claims.getBody();
+            Claims body = claims.getPayload();
 
-            // Check if it's a refresh token
             if (!"refresh".equals(body.get("type"))) {
                 log.warn("Invalid token type for refresh: {}", body.get("type"));
                 return Optional.empty();
@@ -138,7 +119,6 @@ public class TokenService {
             String userId = body.getSubject();
             String scope = (String) body.get("scope");
 
-            // Generate new access token
             String access = generateJwt(userId, scope, "access", expiresIn);
 
             Map<String, Object> tokenResponse = Map.of(
@@ -167,7 +147,7 @@ public class TokenService {
             return oauthProperties.getClients().stream()
                     .anyMatch(c -> c.getClientId().equals(clientId));
         } catch (Exception ex) {
-            return true; // fail-open for tests
+            return false;
         }
     }
 
@@ -175,13 +155,12 @@ public class TokenService {
         Instant now = Instant.now();
 
         return Jwts.builder()
-                .setSubject(userId)
+                .subject(userId)
                 .claim("scope", scope)
                 .claim("type", type)
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plusSeconds(expiresInSeconds)))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plusSeconds(expiresInSeconds)))
+                .signWith(signingKey) // Use modern signature constants
                 .compact();
     }
-
 }
