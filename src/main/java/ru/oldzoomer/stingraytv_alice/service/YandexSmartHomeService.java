@@ -88,22 +88,22 @@ public class YandexSmartHomeService {
     /**
      * Create error response for validation errors
      */
-    public YandexSmartHomeResponse createValidationErrorResponse() {
+    public YandexSmartHomeResponse createValidationErrorResponse(String message) {
         return YandexSmartHomeResponse.builder()
                 .status("error")
                 .errorCode("VALIDATION_ERROR")
-                .errorMessage("Invalid request parameters")
+                .errorMessage(message)
                 .build();
     }
 
     /**
      * Create error response for internal errors
      */
-    public YandexSmartHomeResponse createInternalErrorResponse() {
+    public YandexSmartHomeResponse createInternalErrorResponse(String message) {
         return YandexSmartHomeResponse.builder()
                 .status("error")
                 .errorCode("INTERNAL_ERROR")
-                .errorMessage("Internal server error")
+                .errorMessage(message)
                 .build();
     }
 

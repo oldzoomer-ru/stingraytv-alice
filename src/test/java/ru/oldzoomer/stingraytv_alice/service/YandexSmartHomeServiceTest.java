@@ -92,7 +92,7 @@ class YandexSmartHomeServiceTest {
     @Test
     void createValidationErrorResponse_ShouldReturnCorrectResponse() {
         // When
-        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse();
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Invalid request parameters");
 
         // Then
         assertThat(response.getStatus()).isEqualTo("error");
@@ -103,7 +103,7 @@ class YandexSmartHomeServiceTest {
     @Test
     void createInternalErrorResponse_ShouldReturnCorrectResponse() {
         // When
-        YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse();
+        YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse("Internal server error");
 
         // Then
         assertThat(response.getStatus()).isEqualTo("error");

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -49,9 +48,6 @@ class YandexSmartHomeControllerTest {
 
     @MockitoBean
     private YandexSmartHomeService smartHomeService;
-
-    @MockitoBean
-    private YandexOAuthController yandexOAuthController;
 
     @Test
     void getUserDevices_ValidRequest_ReturnsOk() throws Exception {
