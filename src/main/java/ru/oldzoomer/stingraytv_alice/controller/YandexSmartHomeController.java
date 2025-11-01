@@ -70,7 +70,7 @@ public class YandexSmartHomeController {
 
         log.info("Processing user unlink request with X-Request-Id: {}", requestId);
 
-        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest(requestId);
+        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest();
         return ResponseEntity.ok(response);
     }
 

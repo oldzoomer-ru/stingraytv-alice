@@ -1,5 +1,6 @@
 package ru.oldzoomer.stingraytv_alice.config;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -13,6 +14,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "oauth")
 public class OAuthProperties {
+    @NotEmpty
     private List<Client> clients = new ArrayList<>();
 
     @Setter

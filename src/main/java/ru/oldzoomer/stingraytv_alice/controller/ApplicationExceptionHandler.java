@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
@@ -16,6 +17,15 @@ import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
 @Slf4j
 public class ApplicationExceptionHandler {
     private final YandexSmartHomeService smartHomeService;
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<YandexSmartHomeResponse> handleMissingParameters(
+            MissingServletRequestParameterException ex) {
+        log.warn("Missing parameter: {}", ex.getMessage());
+
+        YandexSmartHomeResponse response = smartHomeService.createMissingParameterErrorResponse();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
     /**
      * Global exception handler for validation errors

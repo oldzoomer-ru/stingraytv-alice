@@ -10,6 +10,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.oldzoomer.stingraytv_alice.service.ClientCredentialsService;
 import ru.oldzoomer.stingraytv_alice.service.PreferencesStorageService;
 import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
+import ru.oldzoomer.stingraytv_alice.controller.YandexOAuthController;
+import ru.oldzoomer.stingraytv_alice.service.TokenService;
+import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;

@@ -91,14 +91,10 @@ class YandexSmartHomeServiceTest {
 
     @Test
     void createValidationErrorResponse_ShouldReturnCorrectResponse() {
-        // Given
-        String requestId = "test-request-id";
-
         // When
-        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse(requestId);
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse();
 
         // Then
-        assertThat(response.getRequestId()).isEqualTo(requestId);
         assertThat(response.getStatus()).isEqualTo("error");
         assertThat(response.getErrorCode()).isEqualTo("VALIDATION_ERROR");
         assertThat(response.getErrorMessage()).isEqualTo("Invalid request parameters");
@@ -106,14 +102,10 @@ class YandexSmartHomeServiceTest {
 
     @Test
     void createInternalErrorResponse_ShouldReturnCorrectResponse() {
-        // Given
-        String requestId = "test-request-id";
-
         // When
-        YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse(requestId);
+        YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse();
 
         // Then
-        assertThat(response.getRequestId()).isEqualTo(requestId);
         assertThat(response.getStatus()).isEqualTo("error");
         assertThat(response.getErrorCode()).isEqualTo("INTERNAL_ERROR");
         assertThat(response.getErrorMessage()).isEqualTo("Internal server error");
@@ -122,29 +114,25 @@ class YandexSmartHomeServiceTest {
     @Test
     void processUserUnlinkRequest_WhenAuthenticated_ShouldReturnResponse() {
         // Given
-        String requestId = "unlink-request-id";
         setupAuthenticatedUser();
 
         // When
-        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest(requestId);
+        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest();
 
         // Then
         assertThat(response).isNotNull();
-        assertThat(response.getRequestId()).isEqualTo(requestId);
     }
 
     @Test
     void processUserUnlinkRequest_WhenNotAuthenticated_ShouldReturnResponse() {
         // Given
-        String requestId = "unlink-request-id";
         SecurityContextHolder.clearContext();
 
         // When
-        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest(requestId);
+        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest();
 
         // Then
         assertThat(response).isNotNull();
-        assertThat(response.getRequestId()).isEqualTo(requestId);
     }
 
     private void setupAuthenticatedUser() {

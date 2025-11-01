@@ -35,7 +35,6 @@ public class SecurityConfig {
 
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
                 new OAuth2AuthorizationServerConfigurer();
-
         http
                 // CORS configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))

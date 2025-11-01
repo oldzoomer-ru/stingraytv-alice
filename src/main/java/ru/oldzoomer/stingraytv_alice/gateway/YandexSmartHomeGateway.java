@@ -160,6 +160,7 @@ public class YandexSmartHomeGateway {
     private boolean executeDeviceAction(String capabilityType, Object actionValue) {
         try {
             if (actionValue instanceof Map) {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> actionMap = (Map<String, Object>) actionValue;
                 String instance = (String) actionMap.get("instance");
 
@@ -180,9 +181,9 @@ public class YandexSmartHomeGateway {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private boolean handlePowerAction(Object actionValue) {
         if (actionValue instanceof Map) {
+            @SuppressWarnings("unchecked")
             Map<String, Object> actionMap = (Map<String, Object>) actionValue;
             if (actionMap.containsKey("value")) {
                 boolean powerOn = Boolean.TRUE.equals(actionMap.get("value"));
@@ -192,9 +193,9 @@ public class YandexSmartHomeGateway {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     private boolean handleRangeAction(String instance, Object actionValue) {
         if (actionValue instanceof Map) {
+            @SuppressWarnings("unchecked")
             Map<String, Object> actionMap = (Map<String, Object>) actionValue;
             if (actionMap.containsKey("value")) {
                 int value = ((Number) actionMap.get("value")).intValue();
