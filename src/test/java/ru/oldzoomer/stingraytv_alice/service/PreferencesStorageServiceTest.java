@@ -52,7 +52,7 @@ class PreferencesStorageServiceTest {
 
         when(objectMapper.writeValueAsString(tokenDto)).thenReturn(tokenJson);
         when(objectMapper.readValue(tokenJson, ClientTokenDto.class)).thenReturn(tokenDto);
-        when(preferences.get(eq("client_token_test-client"), eq(null))).thenReturn(tokenJson);
+        when(preferences.get("client_token_test-client", null)).thenReturn(tokenJson);
 
         // When
         preferencesStorageService.saveClientToken(clientId, tokenDto);
@@ -208,8 +208,7 @@ class PreferencesStorageServiceTest {
         Optional<String> retrievedSecret = preferencesStorageService.getClientSecret(clientId);
 
         // Then
-        assertThat(retrievedSecret).isPresent();
-        assertThat(retrievedSecret.get()).isEqualTo(secret);
+        assertThat(retrievedSecret).isPresent().contains(secret);
         verify(preferences).get("client_token_test-client", null);
         verify(objectMapper).readValue(tokenJson, ClientTokenDto.class);
     }

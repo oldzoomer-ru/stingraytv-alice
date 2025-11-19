@@ -41,7 +41,7 @@ public class YandexSmartHomeService {
         request.setRequestId("discovery-" + System.currentTimeMillis());
 
         // Pass user ID to gateway for inclusion in response
-        return smartHomeGateway.processRequest(request, userId, QueryTypes.DEVICES_DiSCOVERY);
+        return smartHomeGateway.processRequest(request, userId, QueryTypes.DEVICES_DISCOVERY);
     }
 
     /**

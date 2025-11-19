@@ -117,7 +117,7 @@ public class InMemoryPreferences extends Preferences {
 
     @Override
     public void removeNode() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -142,41 +142,41 @@ public class InMemoryPreferences extends Preferences {
 
     @Override
     public void flush() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void sync() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void addPreferenceChangeListener(PreferenceChangeListener pcl) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void removePreferenceChangeListener(PreferenceChangeListener pcl) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void addNodeChangeListener(NodeChangeListener ncl) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void removeNodeChangeListener(NodeChangeListener ncl) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void exportNode(OutputStream os) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void exportSubtree(OutputStream os) {
-
+        throw new UnsupportedOperationException();
     }
 }

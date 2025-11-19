@@ -42,10 +42,10 @@ class StingrayTVServiceTest {
         when(device.baseUrl()).thenReturn(BASE_URL);
         //noinspection unchecked
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(eq(BASE_URL + "/power"))).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(BASE_URL + "/power")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(eq(Map.class))).thenReturn(Map.of("state", "on"));
+        when(responseSpec.body(Map.class)).thenReturn(Map.of("state", "on"));
 
         // Act
         StingrayTVService.PowerState result = stingrayTVService.getPowerState();
@@ -70,7 +70,7 @@ class StingrayTVServiceTest {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
         when(restClient.put()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(eq(BASE_URL + "/power"))).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(BASE_URL + "/power")).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
@@ -98,10 +98,10 @@ class StingrayTVServiceTest {
         when(device.baseUrl()).thenReturn(BASE_URL);
         //noinspection unchecked
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(eq(BASE_URL + "/volume"))).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(BASE_URL + "/volume")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(eq(Map.class))).thenReturn(Map.of("state", 75));
+        when(responseSpec.body(Map.class)).thenReturn(Map.of("state", 75));
 
         // Act
         StingrayTVService.VolumeState result = stingrayTVService.getVolumeState();
@@ -116,7 +116,7 @@ class StingrayTVServiceTest {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
         when(restClient.put()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(eq(BASE_URL + "/volume"))).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(BASE_URL + "/volume")).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
@@ -142,10 +142,10 @@ class StingrayTVServiceTest {
         when(device.baseUrl()).thenReturn(BASE_URL);
         //noinspection unchecked
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(eq(BASE_URL + "/channels/current"))).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(BASE_URL + "/channels/current")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(eq(Map.class))).thenReturn(Map.of("channelNumber", 5, "channelListId", "Unknown"));
+        when(responseSpec.body(Map.class)).thenReturn(Map.of("channelNumber", 5, "channelListId", "Unknown"));
 
         // Act
         StingrayTVService.ChannelState result = stingrayTVService.getCurrentChannel();
@@ -161,7 +161,7 @@ class StingrayTVServiceTest {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
         when(restClient.put()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(eq(BASE_URL + "/channels/current"))).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(BASE_URL + "/channels/current")).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);

@@ -66,15 +66,16 @@ public class ClientTokenCommand {
      */
     @ShellMethod(key = "client-tokens get", value = "Get client token details")
     public String getClientToken(@ShellOption("Client ID") String clientId) {
-        return preferencesStorageService.getClientToken(clientId)
-                .map(token -> String.format(
-                        """
+        final String details = """
                                 Client Token Details:
                                   Client ID: %s
                                   Created: %s
                                   Last Used: %s
                                   Active: %s
-                                """,
+                """;
+        return preferencesStorageService.getClientToken(clientId)
+                .map(token -> String.format(
+                        details,
                         token.getClientId(),
                         token.getCreatedAt(),
                         token.getLastUsedAt(),
