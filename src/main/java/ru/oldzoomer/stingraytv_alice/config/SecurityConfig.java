@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
+import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -25,6 +26,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CorsConfigurationSource corsConfigurationSource;
+    private final AuthorizationServerSettings authorizationServerSettings;
+    private final JwtDecoder jwtDecoder;
 
     /**
      * Main security filter chain configuration
@@ -68,10 +71,13 @@ public class SecurityConfig {
                 )
 
                 // OAuth2 authorization server configuration
-                .with(authorizationServerConfigurer, Customizer.withDefaults())
+                .with(authorizationServerConfigurer,
+                        authorizationServerConfig -> authorizationServerConfig
+                                .authorizationServerSettings(authorizationServerSettings))
 
                 // OAuth2 resource server configuration
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(
+                        jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder)))
 
                 // Exception handling
                 .exceptionHandling(exception -> exception
