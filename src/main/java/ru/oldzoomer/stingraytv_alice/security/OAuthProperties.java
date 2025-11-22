@@ -1,4 +1,4 @@
-package ru.oldzoomer.stingraytv_alice.config;
+package ru.oldzoomer.stingraytv_alice.security;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;

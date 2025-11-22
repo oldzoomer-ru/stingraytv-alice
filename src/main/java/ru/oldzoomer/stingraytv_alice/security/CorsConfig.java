@@ -1,4 +1,4 @@
-package ru.oldzoomer.stingraytv_alice.config;
+package ru.oldzoomer.stingraytv_alice.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

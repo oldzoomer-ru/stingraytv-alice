@@ -1,4 +1,4 @@
-package ru.oldzoomer.stingraytv_alice.config;
+package ru.oldzoomer.stingraytv_alice.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +25,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final CorsConfigurationSource corsConfigurationSource;
     private final AuthorizationServerSettings authorizationServerSettings;
     private final JwtDecoder jwtDecoder;

@@ -1,4 +1,4 @@
-package ru.oldzoomer.stingraytv_alice.config;
+package ru.oldzoomer.stingraytv_alice.security;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

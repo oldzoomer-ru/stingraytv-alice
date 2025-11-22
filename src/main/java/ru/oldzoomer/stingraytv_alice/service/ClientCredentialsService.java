@@ -11,9 +11,9 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
-import ru.oldzoomer.stingraytv_alice.config.ClientTokenProperties;
-import ru.oldzoomer.stingraytv_alice.config.OAuthProperties;
 import ru.oldzoomer.stingraytv_alice.dto.ClientTokenDto;
+import ru.oldzoomer.stingraytv_alice.security.ClientTokenProperties;
+import ru.oldzoomer.stingraytv_alice.security.OAuthProperties;
 
 import java.security.SecureRandom;
 import java.time.Duration;

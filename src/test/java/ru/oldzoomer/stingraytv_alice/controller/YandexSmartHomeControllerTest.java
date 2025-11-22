@@ -11,13 +11,13 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.oldzoomer.stingraytv_alice.config.AuthorizationServerConfig;
-import ru.oldzoomer.stingraytv_alice.config.ClientTokenProperties;
-import ru.oldzoomer.stingraytv_alice.config.OAuthProperties;
-import ru.oldzoomer.stingraytv_alice.config.SecurityConfig;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.UserUnlinkResponse;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
+import ru.oldzoomer.stingraytv_alice.security.AuthorizationServerConfig;
+import ru.oldzoomer.stingraytv_alice.security.ClientTokenProperties;
+import ru.oldzoomer.stingraytv_alice.security.OAuthProperties;
+import ru.oldzoomer.stingraytv_alice.security.SecurityConfig;
 import ru.oldzoomer.stingraytv_alice.service.ClientCredentialsService;
 import ru.oldzoomer.stingraytv_alice.service.PreferencesStorageService;
 import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;

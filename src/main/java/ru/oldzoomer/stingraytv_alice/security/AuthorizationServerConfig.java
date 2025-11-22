@@ -1,4 +1,4 @@
-package ru.oldzoomer.stingraytv_alice.config;
+package ru.oldzoomer.stingraytv_alice.security;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
