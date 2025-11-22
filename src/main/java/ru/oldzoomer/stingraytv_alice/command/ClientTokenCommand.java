@@ -37,10 +37,10 @@ public class ClientTokenCommand {
         sb.append("Client tokens stored in Preferences API:\n\n");
 
         for (ClientTokenDto token : tokens) {
-            sb.append(String.format("Client ID: %s\n", token.getClientId()));
-            sb.append(String.format("  Created: %s\n", token.getCreatedAt()));
-            sb.append(String.format("  Last Used: %s\n", token.getLastUsedAt()));
-            sb.append(String.format("  Active: %s\n", token.isActive()));
+            sb.append(String.format("Client ID: %s%n", token.getClientId()));
+            sb.append(String.format("  Created: %s%n", token.getCreatedAt()));
+            sb.append(String.format("  Last Used: %s%n", token.getLastUsedAt()));
+            sb.append(String.format("  Active: %s%n", token.isActive()));
             sb.append("\n");
         }
 
@@ -112,8 +112,8 @@ public class ClientTokenCommand {
         sb.append("OAuth2 Client Credentials:\n\n");
 
         for (ClientTokenDto token : tokens) {
-            sb.append(String.format("Client ID: %s\n", token.getClientId()));
-            sb.append(String.format("Client Secret: %s\n", token.getClientSecret()));
+            sb.append(String.format("Client ID: %s%n", token.getClientId()));
+            sb.append(String.format("Client Secret: %s%n", token.getClientSecret()));
             sb.append("\n");
             sb.append("Usage:\n");
             sb.append("  Token endpoint: /oauth2/token\n");
