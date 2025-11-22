@@ -13,6 +13,7 @@ import ru.oldzoomer.stingraytv_alice.security.OAuthProperties;
 import ru.oldzoomer.stingraytv_alice.security.SecurityConfig;
 import ru.oldzoomer.stingraytv_alice.service.ClientCredentialsService;
 import ru.oldzoomer.stingraytv_alice.service.PreferencesStorageService;
+import ru.oldzoomer.stingraytv_alice.service.TemporaryCodeService;
 import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -38,6 +39,9 @@ class SecurityConfigTest {
 
     @MockitoBean
     private YandexSmartHomeService yandexSmartHomeService;
+
+    @MockitoBean
+    private TemporaryCodeService temporaryCodeService;
 
     @Test
     void publicEndpoints_ShouldBeAccessibleWithoutAuthentication() throws Exception {
