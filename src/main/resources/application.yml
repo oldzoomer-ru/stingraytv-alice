@@ -11,8 +11,6 @@ logging:
 
 app:
   stingray:
-    device-id: ${STINGRAY_DEVICE_ID:stingray-tv-001}
-    device-name: ${STINGRAY_DEVICE_MAME:Триколор}
     device-description: ${STINGRAY_DEVICE_DESCRIPTION:Спутниковый ресивер Триколора}
     room: ${STINGRAY_ROOM:Зал}
   client-token:

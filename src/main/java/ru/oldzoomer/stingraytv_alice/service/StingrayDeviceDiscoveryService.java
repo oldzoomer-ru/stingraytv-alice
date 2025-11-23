@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
-import ru.oldzoomer.stingraytv_alice.config.StingrayProperties;
+import ru.oldzoomer.stingraytv_alice.config.StingrayConfigurationProperties;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class StingrayDeviceDiscoveryService {
 
-    private final StingrayProperties stingrayProperties;
+    private final StingrayConfigurationProperties stingrayProperties;
 
     private static final String STINGRAY_SERVICE_TYPE = "_stingray-remote._tcp.local.";
     private final Map<String, Device> discoveredDevices = new ConcurrentHashMap<>();
@@ -103,9 +104,6 @@ public class StingrayDeviceDiscoveryService {
         return null;
     }
 
-    public record Device(String baseUrl, String model) {
-    }
-
     /**
      * Check if device is reachable at the given URL using Spring WebClient
      */
@@ -123,7 +121,7 @@ public class StingrayDeviceDiscoveryService {
 
             if (response != null && response.containsKey("userFriendlyModelName")) {
                 return Optional.of(
-                        new Device(baseUrl, response.get("userFriendlyModelName").toString())
+                        new Device(baseUrl, response.get("userFriendlyModelName").toString(), UUID.randomUUID())
                 );
             } else {
                 return Optional.empty();
@@ -132,5 +130,8 @@ public class StingrayDeviceDiscoveryService {
             log.error("Error getting device info from StingrayTV", e);
             return Optional.empty();
         }
+    }
+
+    public record Device(String baseUrl, String model, UUID uuid) {
     }
 }

@@ -4,8 +4,6 @@ spring:
 
 app:
   stingray:
-    device-id: stingray-tv-001
-    device-name: Триколор
     device-description: Спутниковый ресивер Триколора
     room: Зал
 

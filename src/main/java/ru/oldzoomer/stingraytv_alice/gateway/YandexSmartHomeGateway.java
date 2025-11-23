@@ -3,10 +3,11 @@ package ru.oldzoomer.stingraytv_alice.gateway;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.oldzoomer.stingraytv_alice.config.StingrayProperties;
+import ru.oldzoomer.stingraytv_alice.config.StingrayConfigurationProperties;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
 import ru.oldzoomer.stingraytv_alice.enums.QueryTypes;
+import ru.oldzoomer.stingraytv_alice.service.StingrayDeviceDiscoveryService;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService;
 
 import java.util.List;
@@ -19,9 +20,9 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class YandexSmartHomeGateway {
-
-    private final StingrayProperties stingrayProperties;
+    private final StingrayConfigurationProperties stingrayConfigurationProperties;
     private final StingrayTVService stingrayTVService;
+    private final StingrayDeviceDiscoveryService.Device stingrayDevice;
 
     /**
      * Process Yandex Smart Home request with user ID and return response
@@ -42,24 +43,22 @@ public class YandexSmartHomeGateway {
         String requestId = request.getRequestId();
 
         // Determine request type based on payload structure
-        if (type == QueryTypes.DEVICES_QUERY) {
-            return handleQueryRequest(requestId, userId);
-        } else if (type == QueryTypes.DEVICES_ACTION) {
-            return handleActionRequest(request, userId);
-        } else {
-            // Default to discovery if no specific type detected
-            return handleDiscoveryRequest(requestId, userId);
-        }
+        return switch (type) {
+            case DEVICES_QUERY -> handleQueryRequest(requestId, userId);
+            case DEVICES_ACTION -> handleActionRequest(request, userId);
+            case DEVICES_DISCOVERY -> handleDiscoveryRequest(requestId, userId);
+            case null -> createErrorResponse(requestId, "Unrecognized request type");
+        };
     }
 
     private YandexSmartHomeResponse handleDiscoveryRequest(String requestId, String userId) {
         log.info("Handling device discovery request for user: {}", userId);
 
         YandexSmartHomeResponse.Payload.Device device = YandexSmartHomeResponse.Payload.Device.builder()
-                .id(stingrayProperties.getDeviceId())
-                .name(stingrayProperties.getDeviceName())
-                .description(stingrayProperties.getDeviceDescription())
-                .room(stingrayProperties.getRoom())
+                .id(stingrayDevice.uuid())
+                .name(stingrayDevice.model())
+                .description(stingrayConfigurationProperties.getDeviceDescription())
+                .room(stingrayConfigurationProperties.getRoom())
                 .type("devices.types.media_device.receiver")
                 .capabilities(createDeviceCapabilities())
                 .build();
@@ -81,7 +80,7 @@ public class YandexSmartHomeGateway {
 
         try {
             YandexSmartHomeResponse.Payload.Device device = YandexSmartHomeResponse.Payload.Device.builder()
-                    .id(stingrayProperties.getDeviceId())
+                    .id(stingrayDevice.uuid())
                     .capabilities(createCurrentCapabilityStates())
                     .build();
 
@@ -113,7 +112,7 @@ public class YandexSmartHomeGateway {
 
             // Process actions for each device
             for (YandexSmartHomeRequest.Payload.Device device : request.getPayload().getDevices()) {
-                if (stingrayProperties.getDeviceId().equals(device.getId())) {
+                if (stingrayDevice.uuid().toString().equals(device.getId())) {
                     return processDeviceActions(device, requestId, userId);
                 }
             }
@@ -279,7 +278,7 @@ public class YandexSmartHomeGateway {
         StingrayTVService.ChannelState channelState = stingrayTVService.getCurrentChannel();
 
         return YandexSmartHomeResponse.Payload.Device.builder()
-                .id(stingrayProperties.getDeviceId())
+                .id(stingrayDevice.uuid())
                 .capabilities(List.of(
                         YandexSmartHomeResponse.Payload.Device.Capability.builder()
                                 .type("devices.capabilities.on_off")
