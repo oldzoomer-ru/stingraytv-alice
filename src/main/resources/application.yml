@@ -13,12 +13,3 @@ app:
   stingray:
     device-description: ${STINGRAY_DEVICE_DESCRIPTION:Спутниковый ресивер Триколора}
     room: ${STINGRAY_ROOM:Зал}
-  client-token:
-    auto-generate: true
-    token-length: 32
-    token-prefix: "stingray-"
-
-oauth:
-  clients:
-    - client-id: yandex-alice
-      redirect-uris: https://social.yandex.net/broker/redirect

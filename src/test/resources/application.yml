@@ -15,8 +15,3 @@ logging:
     org.springframework.security: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
-
-oauth:
-  clients:
-    - client-id: yandex-alice
-      redirect-uris: https://social.yandex.net/broker/redirect
