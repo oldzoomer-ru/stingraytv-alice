@@ -1,0 +1,16 @@
+{
+  "realm": "test",
+  "enabled": true,
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "value": "password",
+          "type": "password"
+        }
+      ]
+    }
+  ]
+}

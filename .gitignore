@@ -1,4 +1,5 @@
 .env
+acme.json
 HELP.md
 .gradle
 build/

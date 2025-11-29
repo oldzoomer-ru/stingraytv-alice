@@ -3,12 +3,67 @@ services:
     build: .
     container_name: stingraytv-alice
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8080:8080"
+      KEYCLOAK_ISSUER_URI: https://${TRAEFIK_KEYCLOAK_HOST}:${TRAEFIK_HTTPS_PORT:-443}/auth/realms/${KEYCLOAK_REALM:-stingray}
+    network_mode: host
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stringraytv-alice.rule=Host(`${TRAEFIK_HOST}`)"
+      - "traefik.http.routers.stringraytv-alice.entrypoints=websecure"
+      - "traefik.http.routers.stringraytv-alice.tls.certresolver=myresolver"
+      - "traefik.http.routers.stringraytv-alice.service=stringraytv-alice"
+      - "traefik.http.services.stringraytv-alice.loadbalancer.server.port=8080"
+      - "traefik.http.services.stringraytv-alice.loadbalancer.server.scheme=http"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm.json
+    entrypoint: [ "/bin/bash", "-c" ]
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    command: >
+      "/opt/keycloak/bin/kc.sh start --hostname ${TRAEFIK_KEYCLOAK_HOST} --proxy-headers forwarded --http-enabled true --import-realm"
     networks:
-      - stingraytv-network
+      - stingraytv-alice
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`${TRAEFIK_KEYCLOAK_HOST}`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls.certresolver=myresolver"
+      - "traefik.http.routers.keycloak.service=keycloak"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+      - "traefik.http.services.keycloak.loadbalancer.server.scheme=http"
+
+  traefik:
+    image: traefik:v3.2
+    container_name: traefik
+    command: |
+      --providers.docker.exposedbydefault=false
+      --log.level=DEBUG
+      --providers.docker=true
+      --entrypoints.web.address=:${TRAEFIK_HTTP_PORT:-80}
+      --entrypoints.web.http.redirections.entryPoint.to=websecure
+      --entrypoints.web.http.redirections.entryPoint.scheme=https
+      --entrypoints.websecure.address=:${TRAEFIK_HTTPS_PORT:-443}
+      --certificatesresolvers.myresolver.acme.tlschallenge=true
+      --certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}
+      --certificatesresolvers.myresolver.acme.storage=/acme.json
+    ports:
+      - "${TRAEFIK_HTTPS_PORT:-443}:${TRAEFIK_HTTPS_PORT:-443}"
+      - "${TRAEFIK_HTTP_PORT:-80}:${TRAEFIK_HTTP_PORT:-80}"
+    networks:
+      - stingraytv-alice
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./acme.json:/acme.json
+      - /etc/localtime:/etc/localtime:ro
 
 networks:
-  stingraytv-network:
-    driver: bridge
+  stingraytv-alice:

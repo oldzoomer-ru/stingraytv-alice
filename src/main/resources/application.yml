@@ -11,5 +11,14 @@ logging:
 
 app:
   stingray:
-    device-description: ${STINGRAY_DEVICE_DESCRIPTION:Спутниковый ресивер Триколора}
+    device-description: Спутниковый ресивер Триколора
     room: ${STINGRAY_ROOM:Зал}
+    receiver-ip: ${STINGRAY_RECEIVER_IP:}
+    receiver-port: ${STINGRAY_RECEIVER_PORT:50000}
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/auth/realms/stingray}

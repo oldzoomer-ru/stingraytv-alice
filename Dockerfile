@@ -60,7 +60,7 @@ ENV APP_HOME=$BUILD_HOME
 #
 # Copy the jar file and name it app.jar
 #
-COPY --from=build-image $APP_HOME/build/libs/stingraytv-alice-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build-image $APP_HOME/build/libs/stingraytv-alice-1.0.jar app.jar
 
 #
 # The command to run when the container starts.
