@@ -19,6 +19,7 @@ import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1.0")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class YandexSmartHomeController {
 
     private final YandexSmartHomeService smartHomeService;
