@@ -26,8 +26,11 @@ services:
     entrypoint: [ "/bin/bash", "-c" ]
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - keycloak:/opt/keycloak/data
     command: >
-      "/opt/keycloak/bin/kc.sh start --hostname https://${TRAEFIK_KEYCLOAK_HOST}:${TRAEFIK_HTTPS_PORT} --proxy-headers xforwarded --http-enabled true --hostname-backchannel-dynamic true --import-realm"
+      "/opt/keycloak/bin/kc.sh \
+      start --hostname=https://${TRAEFIK_KEYCLOAK_HOST}:${TRAEFIK_HTTPS_PORT} \
+      --proxy-headers=xforwarded --http-enabled=true --hostname-backchannel-dynamic=true"
     networks:
       - stingraytv-alice
     labels:
@@ -51,7 +54,7 @@ services:
       --entrypoints.websecure.address=:${TRAEFIK_HTTPS_PORT:-443}
       --certificatesresolvers.myresolver.acme.tlschallenge=true
       --certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}
-      --certificatesresolvers.myresolver.acme.storage=/acme.json
+      --certificatesresolvers.myresolver.acme.storage=/acme/acme.json
     ports:
       - "${TRAEFIK_HTTPS_PORT:-443}:${TRAEFIK_HTTPS_PORT:-443}"
       - "${TRAEFIK_HTTP_PORT:-80}:${TRAEFIK_HTTP_PORT:-80}"
@@ -61,8 +64,14 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./acme.json:/acme.json
+      - acme:/acme
       - /etc/localtime:/etc/localtime:ro
 
 networks:
   stingraytv-alice:
+
+volumes:
+  keycloak:
+    driver: local
+  acme:
+    driver: local
