@@ -7,6 +7,11 @@ services:
     network_mode: host
     volumes:
       - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "nc localhost 8080" ]
+      timeout: 5s
+      interval: 10s
+      retries: 3
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.stringraytv-alice.rule=Host(`${TRAEFIK_HOST}`)"
@@ -22,15 +27,20 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm.json
-    entrypoint: [ "/bin/bash", "-c" ]
+      KC_HEALTH_ENABLED: true
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME: https://${TRAEFIK_KEYCLOAK_HOST}:${TRAEFIK_HTTPS_PORT:-443}
+      KC_HOSTNAME_BACKCHANNEL: true
+    healthcheck:
+      test: [ "CMD-SHELL", "{ printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - keycloak:/opt/keycloak/data
-    command: >
-      "/opt/keycloak/bin/kc.sh \
-      start --hostname=https://${TRAEFIK_KEYCLOAK_HOST}:${TRAEFIK_HTTPS_PORT} \
-      --proxy-headers=xforwarded --http-enabled=true --hostname-backchannel-dynamic=true"
+    command: start
     networks:
       - stingraytv-alice
     labels:
@@ -66,6 +76,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - acme:/acme
       - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      stingraytv-alice:
+        condition: service_healthy
 
 networks:
   stingraytv-alice:
