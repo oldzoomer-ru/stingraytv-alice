@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -119,9 +118,11 @@ public class StingrayDeviceDiscoveryService {
                     .retrieve()
                     .body(Map.class);
 
-            if (response != null && response.containsKey("userFriendlyModelName")) {
+            if (response != null && response.containsKey("userFriendlyModelName") &&
+                    response.containsKey("serialNumber")) {
                 return Optional.of(
-                        new Device(baseUrl, response.get("userFriendlyModelName").toString(), UUID.randomUUID())
+                        new Device(baseUrl, response.get("userFriendlyModelName").toString(),
+                                response.get("serialNumber").toString())
                 );
             } else {
                 return Optional.empty();
@@ -132,6 +133,6 @@ public class StingrayDeviceDiscoveryService {
         }
     }
 
-    public record Device(String baseUrl, String model, UUID uuid) {
+    public record Device(String baseUrl, String model, String serialNumber) {
     }
 }

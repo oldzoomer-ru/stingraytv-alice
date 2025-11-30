@@ -55,7 +55,7 @@ public class YandexSmartHomeGateway {
         log.info("Handling device discovery request for user: {}", userId);
 
         YandexSmartHomeResponse.Payload.Device device = YandexSmartHomeResponse.Payload.Device.builder()
-                .id(stingrayDevice.uuid())
+                .id(stingrayDevice.serialNumber())
                 .name(stingrayDevice.model())
                 .description(stingrayConfigurationProperties.getDeviceDescription())
                 .room(stingrayConfigurationProperties.getRoom())
@@ -80,7 +80,7 @@ public class YandexSmartHomeGateway {
 
         try {
             YandexSmartHomeResponse.Payload.Device device = YandexSmartHomeResponse.Payload.Device.builder()
-                    .id(stingrayDevice.uuid())
+                    .id(stingrayDevice.serialNumber())
                     .capabilities(createCurrentCapabilityStates())
                     .build();
 
@@ -112,7 +112,7 @@ public class YandexSmartHomeGateway {
 
             // Process actions for each device
             for (YandexSmartHomeRequest.Payload.Device device : request.getPayload().getDevices()) {
-                if (stingrayDevice.uuid().toString().equals(device.getId())) {
+                if (stingrayDevice.serialNumber().equals(device.getId())) {
                     return processDeviceActions(device, requestId, userId);
                 }
             }
@@ -278,7 +278,7 @@ public class YandexSmartHomeGateway {
         StingrayTVService.ChannelState channelState = stingrayTVService.getCurrentChannel();
 
         return YandexSmartHomeResponse.Payload.Device.builder()
-                .id(stingrayDevice.uuid())
+                .id(stingrayDevice.serialNumber())
                 .capabilities(List.of(
                         YandexSmartHomeResponse.Payload.Device.Capability.builder()
                                 .type("devices.capabilities.on_off")

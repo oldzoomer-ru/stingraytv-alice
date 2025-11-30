@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 
 import java.util.Map;
@@ -74,7 +75,7 @@ class StingrayTVServiceTest {
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(null);
+        when(responseSpec.toBodilessEntity()).thenReturn(ResponseEntity.noContent().build());
 
         // Act
         boolean result = stingrayTVService.setPowerState(true);
@@ -120,7 +121,7 @@ class StingrayTVServiceTest {
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(null);
+        when(responseSpec.toBodilessEntity()).thenReturn(ResponseEntity.noContent().build());
 
         // Act
         boolean result = stingrayTVService.setVolume(50);
@@ -165,7 +166,7 @@ class StingrayTVServiceTest {
         when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(null);
+        when(responseSpec.toBodilessEntity()).thenReturn(ResponseEntity.noContent().build());
 
         // Act
         boolean result = stingrayTVService.changeChannel(10);
