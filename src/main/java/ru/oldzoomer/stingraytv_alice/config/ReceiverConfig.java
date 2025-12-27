@@ -1,8 +1,9 @@
 package ru.oldzoomer.stingraytv_alice.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import lombok.RequiredArgsConstructor;
 import ru.oldzoomer.stingraytv_alice.service.StingrayDeviceDiscoveryService;
 
 @Configuration
@@ -11,7 +12,7 @@ public class ReceiverConfig {
     private final StingrayDeviceDiscoveryService stingrayDeviceDiscoveryService;
 
     @Bean
-    public StingrayDeviceDiscoveryService.Device detectedStingrayDevice() {
+    StingrayDeviceDiscoveryService.Device detectedStingrayDevice() {
         return stingrayDeviceDiscoveryService.discoverStingrayDevice();
     }
 }
