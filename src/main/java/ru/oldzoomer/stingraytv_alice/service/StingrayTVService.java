@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -186,12 +187,14 @@ public class StingrayTVService {
     }
 
     @Builder
+    @AllArgsConstructor
     @Data
     public static class PowerState {
         private String state;
     }
 
     @Builder
+    @AllArgsConstructor
     @Data
     public static class VolumeState {
         private int max;
@@ -199,6 +202,7 @@ public class StingrayTVService {
     }
 
     @Builder
+    @AllArgsConstructor
     @Data
     public static class ChannelState {
         private int channelNumber;

@@ -19,7 +19,7 @@ public class RestClientConfig {
     private int readTimeout;
 
     @Bean
-    public RestClient restClient() {
+    RestClient restClient() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(connectTimeout);
         requestFactory.setReadTimeout(readTimeout);
