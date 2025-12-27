@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StingrayTVService {
 
     private final RestClient restClient;
+    private final WebClient webClient;
     private final StingrayDeviceDiscoveryService.Device device;
 
     public PowerState getPowerState() {
@@ -64,6 +66,7 @@ public class StingrayTVService {
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
+
             return true;
         } catch (Exception e) {
             log.error("Error setting power state on StingrayTV", e);
@@ -85,9 +88,7 @@ public class StingrayTVService {
                     .body(VolumeState.class);
 
             if (response != null) {
-                return VolumeState.builder()
-                        .state(response.state)
-                        .build();
+                return response;
             } else {
                 return VolumeState.builder()
                         .state(0)
@@ -116,6 +117,7 @@ public class StingrayTVService {
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
+
             return true;
         } catch (Exception e) {
             log.error("Error setting volume on StingrayTV", e);
@@ -130,16 +132,15 @@ public class StingrayTVService {
                 return ChannelState.builder().channelNumber(0).channelListId("Unknown").build();
             }
 
-            ChannelState response = restClient.get()
+            ChannelState response = webClient.get()
                     .uri(baseUrl + "/channels/current")
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
-                    .body(ChannelState.class);
+                    .bodyToFlux(ChannelState.class)
+                    .blockFirst();
+
             if (response != null) {
-                return ChannelState.builder()
-                        .channelNumber(response.channelNumber)
-                        .channelListId(response.channelListId)
-                        .build();
+                return response;
             } else {
                 return ChannelState.builder()
                         .channelNumber(0)
@@ -179,6 +180,7 @@ public class StingrayTVService {
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
+
             return true;
         } catch (Exception e) {
             log.error("Error changing channel on StingrayTV", e);

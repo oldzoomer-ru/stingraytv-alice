@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +28,13 @@ public class RestClientConfig {
                 .requestFactory(requestFactory)
                 .defaultHeader("User-Agent", "StingrayTV-Alice/1.0")
                 .defaultStatusHandler(response -> response.getStatusCode().isError())
+                .build();
+    }
+
+    @Bean
+    WebClient webClient() {
+        return WebClient.builder()
+                .defaultHeader("User-Agent", "StingrayTV-Alice/1.0")
                 .build();
     }
 }
