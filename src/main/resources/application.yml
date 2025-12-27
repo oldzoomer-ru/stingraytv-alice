@@ -15,11 +15,6 @@ app:
     room: ${STINGRAY_ROOM:Зал}
     receiver-ip: ${STINGRAY_RECEIVER_IP:}
     receiver-port: ${STINGRAY_RECEIVER_PORT:50000}
-  rest-client:
-    connect-timeout: ${REST_CLIENT_CONNECT_TIMEOUT:5000}
-    read-timeout: ${REST_CLIENT_READ_TIMEOUT:10000}
-    retry-max-attempts: ${REST_CLIENT_RETRY_MAX_ATTEMPTS:3}
-    retry-initial-delay-ms: ${REST_CLIENT_RETRY_INITIAL_DELAY_MS:100}
   security:
     jwt:
       jwk-url: ${JWK_KEY_URL:http://keycloak:8080/auth/realms/stingray/protocol/openid-connect/certs}
