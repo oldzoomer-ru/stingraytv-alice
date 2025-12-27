@@ -1,0 +1,63 @@
+services:
+  stingraytv-alice:
+    build: .
+    container_name: stingraytv-alice
+    environment:
+      JWK_KEY_URL: https://${KEYCLOAK_HOSTNAME}/realms/${KEYCLOAK_REALM:-stingray}/protocol/openid-connect/certs
+    networks:
+      - stingraytv-alice
+    ports:
+      - "8080:8080"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "nc localhost 8080" ]
+      timeout: 5s
+      interval: 10s
+      retries: 3
+    depends_on:
+      - mdns_repeater
+
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    container_name: keycloak
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HEALTH_ENABLED: true
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME: https://${KEYCLOAK_HOSTNAME}:443
+      KC_PROXY_HEADERS: xforwarded
+    healthcheck:
+      test: [ "CMD-SHELL", "{ printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - keycloak:/opt/keycloak/data
+    command: start
+    networks:
+      - stingraytv-alice
+    ports:
+      - "8090:8080"
+
+  mdns_repeater:
+    image: jdbeeler/mdns-repeater:latest
+    network_mode: host
+    privileged: true
+    environment:
+      DOCKER_API_VERSION: 1.44
+      USE_MDNS_REPEATER: 1
+      DOCKER_NETWORK_NAME: stingraytv-alice
+      EXTERNAL_INTERFACE: ${EXTERNAL_INTERFACE}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  stingraytv-alice:
+    driver: bridge
+
+volumes:
+  keycloak:
+    driver: local
