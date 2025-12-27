@@ -1,20 +1,21 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.UserUnlinkResponse;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
 import ru.oldzoomer.stingraytv_alice.enums.QueryTypes;
 import ru.oldzoomer.stingraytv_alice.gateway.YandexSmartHomeGateway;
-
-import java.util.Optional;
 
 /**
  * Service for handling Yandex Smart Home business logic
@@ -104,6 +105,17 @@ public class YandexSmartHomeService {
                 .status("error")
                 .errorCode("INTERNAL_ERROR")
                 .errorMessage(message)
+                .build();
+    }
+
+    /**
+     * Create error response for internal errors
+     */
+    public YandexSmartHomeResponse createNotFoundResponse() {
+        return YandexSmartHomeResponse.builder()
+                .status("error")
+                .errorCode("NOT_FOUND")
+                .errorMessage("Not found")
                 .build();
     }
 
