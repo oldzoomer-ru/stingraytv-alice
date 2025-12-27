@@ -18,5 +18,5 @@ app:
   security:
     jwt:
       jwk-url: ${JWK_KEY_URL:http://keycloak:8080/auth/realms/stingray/protocol/openid-connect/certs}
-      jwk-connection-timeout: 30
-      jwk-read-timeout: 30
+      jwk-connection-timeout: 3
+      jwk-read-timeout: 3
