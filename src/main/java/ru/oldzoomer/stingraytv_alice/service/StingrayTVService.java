@@ -1,14 +1,15 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.util.Map;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -25,17 +26,14 @@ public class StingrayTVService {
                 return PowerState.builder().state("offline").build();
             }
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> response = restClient.get()
+            PowerState response = restClient.get()
                     .uri(baseUrl + "/power")
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
-                    .body(Map.class);
+                    .body(PowerState.class);
 
-            if (response != null && response.containsKey("state")) {
-                return PowerState.builder()
-                        .state(response.get("state").toString())
-                        .build();
+            if (response != null && response.state != null) {
+                return response;
             } else {
                 return PowerState.builder()
                         .state("offline")
@@ -79,19 +77,15 @@ public class StingrayTVService {
                 return VolumeState.builder().state(0).build();
             }
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> response = restClient.get()
+            VolumeState response = restClient.get()
                     .uri(baseUrl + "/volume")
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
-                    .body(Map.class);
+                    .body(VolumeState.class);
 
             if (response != null) {
-                int volume = response.containsKey("state") ?
-                        Integer.parseInt(response.get("state").toString()) : 0;
-
                 return VolumeState.builder()
-                        .state(volume)
+                        .state(response.state)
                         .build();
             } else {
                 return VolumeState.builder()
@@ -135,21 +129,15 @@ public class StingrayTVService {
                 return ChannelState.builder().channelNumber(0).channelListId("Unknown").build();
             }
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> response = restClient.get()
+            ChannelState response = restClient.get()
                     .uri(baseUrl + "/channels/current")
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
-                    .body(Map.class);
+                    .body(ChannelState.class);
             if (response != null) {
-                int channelNumber = response.containsKey("channelNumber") ?
-                        Integer.parseInt(response.get("channelNumber").toString()) : 0;
-                String channelListId = response.containsKey("channelListId") ?
-                        response.get("channelListId").toString() : "Unknown";
-
                 return ChannelState.builder()
-                        .channelNumber(channelNumber)
-                        .channelListId(channelListId)
+                        .channelNumber(response.channelNumber)
+                        .channelListId(response.channelListId)
                         .build();
             } else {
                 return ChannelState.builder()

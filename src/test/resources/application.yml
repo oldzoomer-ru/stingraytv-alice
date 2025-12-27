@@ -6,6 +6,10 @@ app:
   stingray:
     device-description: Спутниковый ресивер Триколора
     room: Зал
+  security:
+    jwt:
+      jwk-connection-timeout: 3
+      jwk-read-timeout: 3
 
 logging:
   level:

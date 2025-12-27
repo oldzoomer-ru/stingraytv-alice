@@ -1,5 +1,13 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -8,10 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.ChannelState;
+import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.PowerState;
+import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.VolumeState;
 
 @ExtendWith(MockitoExtension.class)
 class StingrayTVServiceTest {
@@ -46,7 +53,7 @@ class StingrayTVServiceTest {
         when(requestHeadersUriSpec.uri(BASE_URL + "/power")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(Map.class)).thenReturn(Map.of("state", "on"));
+        when(responseSpec.body(PowerState.class)).thenReturn(PowerState.builder().state("on").build());
 
         // Act
         StingrayTVService.PowerState result = stingrayTVService.getPowerState();
@@ -102,7 +109,7 @@ class StingrayTVServiceTest {
         when(requestHeadersUriSpec.uri(BASE_URL + "/volume")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(Map.class)).thenReturn(Map.of("state", 75));
+        when(responseSpec.body(VolumeState.class)).thenReturn(VolumeState.builder().state(75).build());
 
         // Act
         StingrayTVService.VolumeState result = stingrayTVService.getVolumeState();
@@ -146,7 +153,8 @@ class StingrayTVServiceTest {
         when(requestHeadersUriSpec.uri(BASE_URL + "/channels/current")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(Map.class)).thenReturn(Map.of("channelNumber", 5, "channelListId", "Unknown"));
+        when(responseSpec.body(ChannelState.class)).thenReturn(ChannelState.builder()
+                .channelNumber(5).channelListId("Unknown").build());
 
         // Act
         StingrayTVService.ChannelState result = stingrayTVService.getCurrentChannel();
