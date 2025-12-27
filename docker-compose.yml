@@ -21,6 +21,8 @@ services:
       - "traefik.http.routers.stringraytv-alice.service=stringraytv-alice"
       - "traefik.http.services.stringraytv-alice.loadbalancer.server.port=8080"
       - "traefik.http.services.stringraytv-alice.loadbalancer.server.scheme=http"
+    depends_on:
+      - mdns_repeater
 
   keycloak:
     image: quay.io/keycloak/keycloak
