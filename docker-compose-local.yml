@@ -3,7 +3,7 @@ services:
     build: .
     container_name: stingraytv-alice
     environment:
-      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM:-stingray}
+      JWK_KEY_URL: http://keycloak:8080/realms/${KEYCLOAK_REALM:-stingray}/protocol/openid-connect/certs
     networks:
       - stingraytv-alice
     volumes:

@@ -20,10 +20,8 @@ app:
     read-timeout: ${REST_CLIENT_READ_TIMEOUT:10000}
     retry-max-attempts: ${REST_CLIENT_RETRY_MAX_ATTEMPTS:3}
     retry-initial-delay-ms: ${REST_CLIENT_RETRY_INITIAL_DELAY_MS:100}
-
-spring:
   security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/auth/realms/stingray}
+    jwt:
+      jwk-url: ${JWK_KEY_URL:http://keycloak:8080/auth/realms/stingray/protocol/openid-connect/certs}
+      jwk-connection-timeout: 30
+      jwk-read-timeout: 30

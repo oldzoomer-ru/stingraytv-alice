@@ -1,5 +1,9 @@
 package ru.oldzoomer.stingraytv_alice.config;
 
+import java.time.Duration;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -7,7 +11,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestOperations;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +27,15 @@ import ru.oldzoomer.stingraytv_alice.converter.KeycloakConverter;
 @EnableWebSecurity
 @Slf4j
 public class SecurityConfig {
+
+    @Value("${app.security.jwt.jwk-url}")
+    private String jwkUrl;
+
+    @Value("${app.security.jwt.jwk-connection-timeout}")
+    private int jwkConnectionTimeout;
+
+    @Value("${app.security.jwt.jwk-read-timeout}")
+    private int jwkReadTimeout;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -53,5 +69,21 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    @Bean
+    JwtDecoder jwtDecoder(RestTemplateBuilder builder) {
+        // Configure the RestTemplate with custom timeouts
+        RestOperations rest = builder
+                .connectTimeout(Duration.ofSeconds(jwkConnectionTimeout))
+                .readTimeout(Duration.ofSeconds(jwkReadTimeout))
+                .build();
+
+        // Create the NimbusJwtDecoder and provide the custom RestOperations
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkUrl)
+                .restOperations(rest)
+                .build();
+
+        return jwtDecoder;
     }
 }
