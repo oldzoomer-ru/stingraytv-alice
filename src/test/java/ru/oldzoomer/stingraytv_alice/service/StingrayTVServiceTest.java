@@ -1,18 +1,17 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClient;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StingrayTVServiceTest {
@@ -20,10 +19,20 @@ class StingrayTVServiceTest {
     private static final String BASE_URL = "http://192.168.1.100:50000";
 
     @Mock
-    private RetryableRestClient restClient;
+    private RestClient restClient;
 
     @Mock
     private StingrayDeviceDiscoveryService.Device device;
+
+    @Mock
+    private RestClient.RequestBodyUriSpec requestBodyUriSpec;
+
+    @SuppressWarnings("rawtypes")
+    @Mock
+    private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
+
+    @Mock
+    private RestClient.ResponseSpec responseSpec;
 
     @InjectMocks
     private StingrayTVService stingrayTVService;
@@ -32,7 +41,12 @@ class StingrayTVServiceTest {
     void getPowerState_WhenDeviceFound_ReturnsPowerState() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
-        when(restClient.getWithRetry(BASE_URL + "/power")).thenReturn(Map.of("state", "on"));
+        //noinspection unchecked
+        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(BASE_URL + "/power")).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.body(Map.class)).thenReturn(Map.of("state", "on"));
 
         // Act
         StingrayTVService.PowerState result = stingrayTVService.getPowerState();
@@ -56,6 +70,12 @@ class StingrayTVServiceTest {
     void setPowerState_WhenDeviceFound_ReturnsTrue() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.put()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(BASE_URL + "/power")).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.toBodilessEntity()).thenReturn(ResponseEntity.noContent().build());
 
         // Act
         boolean result = stingrayTVService.setPowerState(true);
@@ -77,7 +97,12 @@ class StingrayTVServiceTest {
     void getVolumeState_WhenDeviceFound_ReturnsVolumeState() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
-        when(restClient.getWithRetry(BASE_URL + "/volume")).thenReturn(Map.of("state", 75));
+        //noinspection unchecked
+        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(BASE_URL + "/volume")).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.body(Map.class)).thenReturn(Map.of("state", 75));
 
         // Act
         StingrayTVService.VolumeState result = stingrayTVService.getVolumeState();
@@ -91,6 +116,12 @@ class StingrayTVServiceTest {
     void setVolume_WithValidVolume_ReturnsTrue() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.put()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(BASE_URL + "/volume")).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.toBodilessEntity()).thenReturn(ResponseEntity.noContent().build());
 
         // Act
         boolean result = stingrayTVService.setVolume(50);
@@ -111,8 +142,11 @@ class StingrayTVServiceTest {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
         //noinspection unchecked
-        when(restClient.getWithRetry(BASE_URL + "/channels/current"))
-            .thenReturn(Map.of("channelNumber", 5, "channelListId", "Unknown"));
+        when(restClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(BASE_URL + "/channels/current")).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.body(Map.class)).thenReturn(Map.of("channelNumber", 5, "channelListId", "Unknown"));
 
         // Act
         StingrayTVService.ChannelState result = stingrayTVService.getCurrentChannel();
@@ -127,6 +161,12 @@ class StingrayTVServiceTest {
     void changeChannel_WithValidChannel_ReturnsTrue() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.put()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(BASE_URL + "/channels/current")).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.contentType(any())).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.body(anyMap())).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.toBodilessEntity()).thenReturn(ResponseEntity.noContent().build());
 
         // Act
         boolean result = stingrayTVService.changeChannel(10);
