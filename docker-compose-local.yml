@@ -3,7 +3,7 @@ services:
     build: .
     container_name: stingraytv-alice
     environment:
-      KEYCLOAK_ISSUER_URI: https://${TRAEFIK_HOST}/keycloak/realms/${KEYCLOAK_REALM:-stingray}
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM:-stingray}
     networks:
       - stingraytv-alice
     volumes:
@@ -15,12 +15,13 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.stringraytv-alice.rule=Host(`${TRAEFIK_HOST}`) && PathPrefix(`/`)"
-      - "traefik.http.routers.stringraytv-alice.entrypoints=websecure"
-      - "traefik.http.routers.stringraytv-alice.tls.certresolver=myresolver"
+      - "traefik.http.routers.stringraytv-alice.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.stringraytv-alice.entrypoints=web"
       - "traefik.http.routers.stringraytv-alice.service=stringraytv-alice"
       - "traefik.http.services.stringraytv-alice.loadbalancer.server.port=8080"
       - "traefik.http.services.stringraytv-alice.loadbalancer.server.scheme=http"
+    depends_on:
+      - mdns_repeater
 
   keycloak:
     image: quay.io/keycloak/keycloak
@@ -31,7 +32,7 @@ services:
       KC_HEALTH_ENABLED: true
       KC_PROXY_HEADERS: xforwarded
       KC_HTTP_ENABLED: true
-      KC_HOSTNAME: https://${TRAEFIK_HOST}/keycloak
+      KC_HOSTNAME: http://localhost/keycloak
     healthcheck:
       test: [ "CMD-SHELL", "{ printf 'HEAD /keycloak/health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000" ]
       interval: 10s
@@ -40,14 +41,13 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - keycloak:/opt/keycloak/data
-    command: start --http-relative-path /keycloak
+    command: start-dev --proxy-headers xforwarded --http-relative-path /keycloak
     networks:
       - stingraytv-alice
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.rule=Host(`${TRAEFIK_HOST}`) && PathPrefix(`/keycloak`)"
-      - "traefik.http.routers.keycloak.entrypoints=websecure"
-      - "traefik.http.routers.keycloak.tls.certresolver=myresolver"
+      - "traefik.http.routers.keycloak.rule=Host(`localhost`) && PathPrefix(`/keycloak`)"
+      - "traefik.http.routers.keycloak.entrypoints=web"
       - "traefik.http.routers.keycloak.service=keycloak"
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
       - "traefik.http.services.keycloak.loadbalancer.server.scheme=http"
@@ -71,20 +71,12 @@ services:
       --providers.docker.exposedbydefault=false
       --providers.docker=true
       --entrypoints.web.address=:80
-      --entrypoints.web.http.redirections.entryPoint.to=websecure
-      --entrypoints.web.http.redirections.entryPoint.scheme=https
-      --entrypoints.websecure.address=:443
-      --certificatesresolvers.myresolver.acme.tlschallenge=true
-      --certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}
-      --certificatesresolvers.myresolver.acme.storage=/acme/acme.json
     ports:
-      - "443:443"
       - "80:80"
     networks:
       - stingraytv-alice
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - acme:/acme
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       keycloak:
@@ -97,6 +89,4 @@ networks:
 
 volumes:
   keycloak:
-    driver: local
-  acme:
     driver: local
