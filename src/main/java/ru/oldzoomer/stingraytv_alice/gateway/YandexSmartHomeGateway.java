@@ -1,17 +1,18 @@
 package ru.oldzoomer.stingraytv_alice.gateway;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import ru.oldzoomer.stingraytv_alice.config.StingrayConfigurationProperties;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
 import ru.oldzoomer.stingraytv_alice.enums.QueryTypes;
 import ru.oldzoomer.stingraytv_alice.service.StingrayDeviceDiscoveryService;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Main gateway for Yandex Smart Home integration with StingrayTV API
@@ -273,10 +274,6 @@ public class YandexSmartHomeGateway {
     }
 
     private YandexSmartHomeResponse.Payload.Device createUpdatedDeviceState() {
-        StingrayTVService.PowerState powerState = stingrayTVService.getPowerState();
-        StingrayTVService.VolumeState volumeState = stingrayTVService.getVolumeState();
-        StingrayTVService.ChannelState channelState = stingrayTVService.getCurrentChannel();
-
         return YandexSmartHomeResponse.Payload.Device.builder()
                 .id(stingrayDevice.serialNumber())
                 .capabilities(List.of(
@@ -284,20 +281,20 @@ public class YandexSmartHomeGateway {
                                 .type("devices.capabilities.on_off")
                                 .state(Map.of(
                                         "instance", "on",
-                                        "value", "on".equals(powerState.getState())
+                                        "action_result", Map.of("status", "DONE")
                                 ))
                                 .build(),
                         YandexSmartHomeResponse.Payload.Device.Capability.builder()
                                 .type("devices.capabilities.range")
                                 .state(Map.of(
                                         "instance", "channel",
-                                        "value", channelState.getChannelNumber()
+                                        "action_result", Map.of("status", "DONE")
                                 )).build(),
                         YandexSmartHomeResponse.Payload.Device.Capability.builder()
                                 .type("devices.capabilities.range")
                                 .state(Map.of(
                                         "instance", "volume",
-                                        "value", volumeState.getState()
+                                        "action_result", Map.of("status", "DONE")
                                 ))
                                 .build()
                 ))
