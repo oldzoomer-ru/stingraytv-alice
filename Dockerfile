@@ -48,7 +48,7 @@ RUN ./gradlew :build --no-daemon -x test;
 #
 # Java image for the application to run in.
 #
-FROM eclipse-temurin:21-jre-alpine
+FROM gcr.io/distroless/java21-debian13:nonroot
 
 #
 # Build arguments
@@ -65,4 +65,4 @@ COPY --from=build-image $APP_HOME/build/libs/stingraytv-alice-1.0.jar app.jar
 #
 # The command to run when the container starts.
 #
-CMD ["java", "-jar", "app.jar"]
+CMD ["app.jar"]
