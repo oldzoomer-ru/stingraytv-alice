@@ -1,13 +1,11 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.when;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 
+import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.ChannelState;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.PowerState;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.VolumeState;
 
@@ -28,9 +27,6 @@ class StingrayTVServiceTest {
     private RestClient restClient;
 
     @Mock
-    private StingrayDeviceDiscoveryService.Device device;
-
-    @Mock
     private RestClient.RequestBodyUriSpec requestBodyUriSpec;
 
     @SuppressWarnings("rawtypes")
@@ -39,6 +35,9 @@ class StingrayTVServiceTest {
 
     @Mock
     private RestClient.ResponseSpec responseSpec;
+
+    @Mock
+    private StingrayDeviceDiscoveryService.Device device;
 
     @InjectMocks
     private StingrayTVService stingrayTVService;
@@ -55,21 +54,38 @@ class StingrayTVServiceTest {
         when(responseSpec.body(PowerState.class)).thenReturn(PowerState.builder().state("on").build());
 
         // Act
-        StingrayTVService.PowerState result = stingrayTVService.getPowerState();
+        PowerState result = stingrayTVService.getPowerState();
 
         // Assert
-        assertNotNull(result);
-        assertEquals("on", result.getState());
+        assertThat(result).isNotNull();
+        assertThat(result.getState()).isEqualTo("on");
     }
 
     @Test
     void getPowerState_WhenDeviceNotFound_ReturnsOffline() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(null);
+
         // Act
-        StingrayTVService.PowerState result = stingrayTVService.getPowerState();
+        PowerState result = stingrayTVService.getPowerState();
 
         // Assert
-        assertNotNull(result);
-        assertEquals("offline", result.getState());
+        assertThat(result).isNotNull();
+        assertThat(result.getState()).isEqualTo("offline");
+    }
+
+    @Test
+    void getPowerState_WhenExceptionOccurs_ReturnsOffline() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.get()).thenThrow(new RuntimeException("Network error"));
+
+        // Act
+        PowerState result = stingrayTVService.getPowerState();
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getState()).isEqualTo("offline");
     }
 
     @Test
@@ -87,16 +103,32 @@ class StingrayTVServiceTest {
         boolean result = stingrayTVService.setPowerState(true);
 
         // Assert
-        assertTrue(result);
+        assertThat(result).isTrue();
     }
 
     @Test
     void setPowerState_WhenDeviceNotFound_ReturnsFalse() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(null);
+
         // Act
         boolean result = stingrayTVService.setPowerState(true);
 
         // Assert
-        assertFalse(result);
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void setPowerState_WhenExceptionOccurs_ReturnsFalse() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.put()).thenThrow(new RuntimeException("Network error"));
+
+        // Act
+        boolean result = stingrayTVService.setPowerState(true);
+
+        // Assert
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -111,11 +143,38 @@ class StingrayTVServiceTest {
         when(responseSpec.body(VolumeState.class)).thenReturn(VolumeState.builder().state(75).build());
 
         // Act
-        StingrayTVService.VolumeState result = stingrayTVService.getVolumeState();
+        VolumeState result = stingrayTVService.getVolumeState();
 
         // Assert
-        assertNotNull(result);
-        assertEquals(75, result.getState());
+        assertThat(result).isNotNull();
+        assertThat(result.getState()).isEqualTo(75);
+    }
+
+    @Test
+    void getVolumeState_WhenDeviceNotFound_ReturnsZero() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(null);
+
+        // Act
+        VolumeState result = stingrayTVService.getVolumeState();
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getState()).isEqualTo(0);
+    }
+
+    @Test
+    void getVolumeState_WhenExceptionOccurs_ReturnsZero() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.get()).thenThrow(new RuntimeException("Network error"));
+
+        // Act
+        VolumeState result = stingrayTVService.getVolumeState();
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getState()).isEqualTo(0);
     }
 
     @Test
@@ -133,20 +192,43 @@ class StingrayTVServiceTest {
         boolean result = stingrayTVService.setVolume(50);
 
         // Assert
-        assertTrue(result);
+        assertThat(result).isTrue();
     }
 
     @Test
-    void setVolume_WithInvalidVolume_ThrowsException() {
+    void setVolume_WithInvalidVolume_ReturnsFalse() {
         // Act & Assert
-        assertFalse(stingrayTVService.setVolume(-1));
-        assertFalse(stingrayTVService.setVolume(101));
+        assertThat(stingrayTVService.setVolume(-1)).isFalse();
+        assertThat(stingrayTVService.setVolume(101)).isFalse();
     }
 
-    /*
-    // This is temporary manually testing
-    // TODO: Fix tests
     @Test
+    void setVolume_WhenDeviceNotFound_ReturnsFalse() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(null);
+
+        // Act
+        boolean result = stingrayTVService.setVolume(50);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void setVolume_WhenExceptionOccurs_ReturnsFalse() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.put()).thenThrow(new RuntimeException("Network error"));
+
+        // Act
+        boolean result = stingrayTVService.setVolume(50);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @Disabled("Disabled for now, because it's not possible to mock the WebClient")
     void getCurrentChannel_WhenDeviceFound_ReturnsChannelState() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
@@ -159,14 +241,41 @@ class StingrayTVServiceTest {
                 .channelNumber(5).channelListId("Unknown").build());
 
         // Act
-        StingrayTVService.ChannelState result = stingrayTVService.getCurrentChannel();
+        ChannelState result = stingrayTVService.getCurrentChannel();
 
         // Assert
-        assertNotNull(result);
-        assertEquals(5, result.getChannelNumber());
-        assertEquals("Unknown", result.getChannelListId());
+        assertThat(result).isNotNull();
+        assertThat(result.getChannelNumber()).isEqualTo(5);
+        assertThat(result.getChannelListId()).isEqualTo("Unknown");
     }
-    */
+
+    @Test
+    void getCurrentChannel_WhenDeviceNotFound_ReturnsDefaultValues() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(null);
+
+        // Act
+        ChannelState result = stingrayTVService.getCurrentChannel();
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getChannelNumber()).isEqualTo(0);
+        assertThat(result.getChannelListId()).isEqualTo("Unknown");
+    }
+
+    @Test
+    void getCurrentChannel_WhenExceptionOccurs_ReturnsDefaultValues() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
+
+        // Act
+        ChannelState result = stingrayTVService.getCurrentChannel();
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getChannelNumber()).isEqualTo(0);
+        assertThat(result.getChannelListId()).isEqualTo("Unknown");
+    }
 
     @Test
     void changeChannel_WithValidChannel_ReturnsTrue() {
@@ -183,12 +292,37 @@ class StingrayTVServiceTest {
         boolean result = stingrayTVService.changeChannel(10);
 
         // Assert
-        assertTrue(result);
+        assertThat(result).isTrue();
     }
 
     @Test
-    void changeChannel_WithNegativeChannel_ThrowsException() {
+    void changeChannel_WithNegativeChannel_ReturnsFalse() {
         // Act & Assert
-        assertFalse(stingrayTVService.changeChannel(-1));
+        assertThat(stingrayTVService.changeChannel(-1)).isFalse();
+    }
+
+    @Test
+    void changeChannel_WhenDeviceNotFound_ReturnsFalse() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(null);
+
+        // Act
+        boolean result = stingrayTVService.changeChannel(10);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void changeChannel_WhenExceptionOccurs_ReturnsFalse() {
+        // Arrange
+        when(device.baseUrl()).thenReturn(BASE_URL);
+        when(restClient.put()).thenThrow(new RuntimeException("Network error"));
+
+        // Act
+        boolean result = stingrayTVService.changeChannel(10);
+
+        // Assert
+        assertThat(result).isFalse();
     }
 }
