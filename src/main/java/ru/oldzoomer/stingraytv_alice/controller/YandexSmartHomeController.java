@@ -1,11 +1,18 @@
 package ru.oldzoomer.stingraytv_alice.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.UserUnlinkResponse;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
@@ -27,8 +34,8 @@ public class YandexSmartHomeController {
      * Handle user device discovery request (GET)
      */
     @GetMapping("/user/devices")
-    public ResponseEntity<YandexSmartHomeResponse> getUserDevices() {
-        YandexSmartHomeResponse response = smartHomeService.processUserDevicesRequest();
+    public ResponseEntity<YandexSmartHomeResponse> getUserDevices(@RequestHeader("X-Request-Id") String requestId) {
+        YandexSmartHomeResponse response = smartHomeService.processUserDevicesRequest(requestId);
         return ResponseEntity.ok(response);
     }
 
@@ -37,9 +44,10 @@ public class YandexSmartHomeController {
      */
     @PostMapping("/user/devices/query")
     public ResponseEntity<YandexSmartHomeResponse> queryDeviceStates(
-            @Valid @RequestBody YandexSmartHomeRequest request) {
+            @Valid @RequestBody YandexSmartHomeRequest request,
+            @RequestHeader("X-Request-Id") String requestId) {
 
-        YandexSmartHomeResponse response = smartHomeService.processDeviceQueryRequest(request);
+        YandexSmartHomeResponse response = smartHomeService.processDeviceQueryRequest(request, requestId);
         return ResponseEntity.ok(response);
     }
 
@@ -48,9 +56,10 @@ public class YandexSmartHomeController {
      */
     @PostMapping("/user/devices/action")
     public ResponseEntity<YandexSmartHomeResponse> executeDeviceAction(
-            @Valid @RequestBody YandexSmartHomeRequest request) {
+            @Valid @RequestBody YandexSmartHomeRequest request,
+            @RequestHeader("X-Request-Id") String requestId) {
 
-        YandexSmartHomeResponse response = smartHomeService.processDeviceActionRequest(request);
+        YandexSmartHomeResponse response = smartHomeService.processDeviceActionRequest(request, requestId);
         return ResponseEntity.ok(response);
     }
 
@@ -61,16 +70,8 @@ public class YandexSmartHomeController {
      */
     @PostMapping("/user/unlink")
     public ResponseEntity<UserUnlinkResponse> unlinkUser(
-            @RequestHeader(value = "X-Request-Id", required = false) String requestId) {
-
-        if (requestId == null || requestId.trim().isEmpty()) {
-            log.warn("User unlink request received without X-Request-Id header");
-            return ResponseEntity.badRequest().build();
-        }
-
-        log.info("Processing user unlink request with X-Request-Id: {}", requestId);
-
-        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest();
+            @RequestHeader("X-Request-Id") String requestId) {
+        UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest(requestId);
         return ResponseEntity.ok(response);
     }
 

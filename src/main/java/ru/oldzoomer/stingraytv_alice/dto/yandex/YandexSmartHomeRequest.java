@@ -1,16 +1,14 @@
 package ru.oldzoomer.stingraytv_alice.dto.yandex;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+
 @Data
 public class YandexSmartHomeRequest {
-    @JsonProperty("request_id")
-    private String requestId;
-
     private Payload payload;
 
     @Data

@@ -2,7 +2,6 @@ package ru.oldzoomer.stingraytv_alice.service;
 
 import java.util.Optional;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -30,48 +29,52 @@ public class YandexSmartHomeService {
 
     /**
      * Process user devices discovery request (GET without payload)
-     * Requires authentication via Spring Security
      */
-    @PreAuthorize("isAuthenticated()")
-    public YandexSmartHomeResponse processUserDevicesRequest() {
-        String userId = getCurrentUserId().orElse("unknown");
-        log.info("Processing user devices discovery request from user: {}", userId);
-
+    public YandexSmartHomeResponse processUserDevicesRequest(String requestId) {
         // Create a minimal request for discovery
         YandexSmartHomeRequest request = new YandexSmartHomeRequest();
-        request.setRequestId("discovery-" + System.currentTimeMillis());
 
         // Pass user ID to gateway for inclusion in response
-        return smartHomeGateway.processRequest(request, userId, QueryTypes.DEVICES_DISCOVERY);
+        return processAuthenticatedRequest(request, requestId, "discovery request", QueryTypes.DEVICES_DISCOVERY);
     }
 
     /**
      * Process device state query request
-     * Requires authentication via Spring Security
      */
-    @PreAuthorize("isAuthenticated()")
-    public YandexSmartHomeResponse processDeviceQueryRequest(YandexSmartHomeRequest request) {
-        return processAuthenticatedRequest(request, "device query", QueryTypes.DEVICES_QUERY);
+    public YandexSmartHomeResponse processDeviceQueryRequest(YandexSmartHomeRequest request, String requestId) {
+        return processAuthenticatedRequest(request, requestId, "device query", QueryTypes.DEVICES_QUERY);
     }
 
     /**
      * Process device action request
-     * Requires authentication via Spring Security
      */
-    @PreAuthorize("isAuthenticated()")
-    public YandexSmartHomeResponse processDeviceActionRequest(YandexSmartHomeRequest request) {
-        return processAuthenticatedRequest(request, "device action", QueryTypes.DEVICES_ACTION);
+    public YandexSmartHomeResponse processDeviceActionRequest(YandexSmartHomeRequest request, String requestId) {
+        return processAuthenticatedRequest(request, requestId, "device action", QueryTypes.DEVICES_ACTION);
+    }
+
+    /**
+     * Process user unlink request
+     * This method handles account disconnection initiated by user
+     * The user token should be revoked regardless of response correctness
+     */
+    public UserUnlinkResponse processUserUnlinkRequest(String requestId) {
+        String userId = getCurrentUserId().orElse("unknown");
+
+        log.info("Processing user unlink request from user: {}, request_id: {}", userId);
+
+        return UserUnlinkResponse.builder()
+                .build();
     }
 
     /**
      * Common method for processing authenticated requests
-     * Assumes authentication is already handled by Spring Security
      */
-    private YandexSmartHomeResponse processAuthenticatedRequest(YandexSmartHomeRequest request, String requestType, QueryTypes queryTypes) {
+    private YandexSmartHomeResponse processAuthenticatedRequest(YandexSmartHomeRequest request, String requestId,
+                                                                    String requestType, QueryTypes queryTypes) {
         String userId = getCurrentUserId().orElse("unknown");
-        log.info("Processing {} request from user: {}, request_id: {}", requestType, userId, request.getRequestId());
+        log.info("Processing {} request from user: {}, request_id: {}", requestType, userId, requestId);
 
-        return smartHomeGateway.processRequest(request, userId, queryTypes);
+        return smartHomeGateway.processRequest(request, requestId, userId, queryTypes);
     }
 
     /**
@@ -116,28 +119,6 @@ public class YandexSmartHomeService {
                 .status("error")
                 .errorCode("NOT_FOUND")
                 .errorMessage("Not found")
-                .build();
-    }
-
-    /**
-     * Process user unlink request
-     * This method handles account disconnection initiated by user
-     * The user token should be revoked regardless of response correctness
-     */
-    @PreAuthorize("isAuthenticated()")
-    public UserUnlinkResponse processUserUnlinkRequest() {
-        String userId = getCurrentUserId().orElse("unknown");
-
-        log.info("Processing user unlink request from user: {}", userId);
-
-        // Log the unlink event for investigation
-        log.warn("User {} initiated account unlink. Token should be revoked.", userId);
-
-        // According to Yandex documentation, user token should be revoked
-        // regardless of response correctness
-        // In a real implementation, we would revoke the token here
-
-        return UserUnlinkResponse.builder()
                 .build();
     }
 }

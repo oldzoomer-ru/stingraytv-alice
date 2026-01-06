@@ -28,25 +28,23 @@ public class YandexSmartHomeGateway {
     /**
      * Process Yandex Smart Home request with user ID and return response
      */
-    public YandexSmartHomeResponse processRequest(YandexSmartHomeRequest request, String userId, QueryTypes type) {
-        log.info("Processing Yandex Smart Home request: {}, user: {}", request.getRequestId(), userId);
+    public YandexSmartHomeResponse processRequest(YandexSmartHomeRequest request, String requestId, String userId, QueryTypes type) {
+        log.info("Processing Yandex Smart Home request: {}, user: {}", requestId, userId);
 
         try {
             // Handle query and action requests (with devices in payload)
-            return handleDevicesRequest(request, userId, type);
+            return handleDevicesRequest(request, requestId, userId, type);
         } catch (Exception e) {
-            log.error("Error processing Yandex Smart Home request: {}", request.getRequestId(), e);
-            return createErrorResponse(request.getRequestId(), "Internal server error");
+            log.error("Error processing Yandex Smart Home request: {}", requestId, e);
+            return createErrorResponse(requestId, "Internal server error");
         }
     }
 
-    private YandexSmartHomeResponse handleDevicesRequest(YandexSmartHomeRequest request, String userId, QueryTypes type) {
-        String requestId = request.getRequestId();
-
+    private YandexSmartHomeResponse handleDevicesRequest(YandexSmartHomeRequest request, String requestId, String userId, QueryTypes type) {
         // Determine request type based on payload structure
         return switch (type) {
             case DEVICES_QUERY -> handleQueryRequest(requestId, userId);
-            case DEVICES_ACTION -> handleActionRequest(request, userId);
+            case DEVICES_ACTION -> handleActionRequest(request, requestId, userId);
             case DEVICES_DISCOVERY -> handleDiscoveryRequest(requestId, userId);
             case null -> createErrorResponse(requestId, "Unrecognized request type");
         };
@@ -102,9 +100,8 @@ public class YandexSmartHomeGateway {
         }
     }
 
-    private YandexSmartHomeResponse handleActionRequest(YandexSmartHomeRequest request, String userId) {
+    private YandexSmartHomeResponse handleActionRequest(YandexSmartHomeRequest request, String requestId, String userId) {
         log.info("Handling device action request for user: {}", userId);
-        String requestId = request.getRequestId();
 
         try {
             if (request.getPayload().getDevices() == null || request.getPayload().getDevices().isEmpty()) {
