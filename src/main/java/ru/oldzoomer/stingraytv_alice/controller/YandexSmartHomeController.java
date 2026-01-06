@@ -1,14 +1,20 @@
 package ru.oldzoomer.stingraytv_alice.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -75,11 +81,54 @@ public class YandexSmartHomeController {
         return ResponseEntity.ok(response);
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<YandexSmartHomeResponse> handleResourceNotFoundException(NoResourceFoundException ex, WebRequest request) {
+        log.warn("Page is not found: {}", ex.getResourcePath());
+
+        YandexSmartHomeResponse response = smartHomeService.createNotFoundResponse();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<YandexSmartHomeResponse> handleMissingParameters(
+            MissingServletRequestParameterException ex) {
+        log.warn("Missing parameter: {}", ex.getMessage());
+
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Missing parameters");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     /**
-     * Health check endpoint
+     * Global exception handler for validation errors
      */
-    @RequestMapping(value = "", method = RequestMethod.HEAD)
-    public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("OK");
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<YandexSmartHomeResponse> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        log.warn("Validation error: {}", ex.getMessage());
+
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Validation error");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Global exception handler for JSON parsing errors
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<YandexSmartHomeResponse> handleJsonParseException(HttpMessageNotReadableException ex) {
+        log.warn("JSON parse error: {}", ex.getMessage());
+
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Invalid JSON");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Global exception handler for other exceptions
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<YandexSmartHomeResponse> handleGenericException(Exception ex) {
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
+
+        YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse("Internal error");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
