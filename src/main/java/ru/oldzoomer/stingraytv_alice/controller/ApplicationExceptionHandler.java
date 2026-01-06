@@ -26,7 +26,7 @@ public class ApplicationExceptionHandler {
         log.warn("Page is not found: {}", ex.getResourcePath());
 
         YandexSmartHomeResponse response = smartHomeService.createNotFoundResponse();
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -34,8 +34,8 @@ public class ApplicationExceptionHandler {
             MissingServletRequestParameterException ex) {
         log.warn("Missing parameter: {}", ex.getMessage());
 
-        YandexSmartHomeResponse response = smartHomeService.createMissingParameterErrorResponse();
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Missing parameters");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /**
@@ -46,8 +46,8 @@ public class ApplicationExceptionHandler {
             MethodArgumentNotValidException ex) {
         log.warn("Validation error: {}", ex.getMessage());
 
-        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("validation-error");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Validation error");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /**
@@ -57,8 +57,8 @@ public class ApplicationExceptionHandler {
     public ResponseEntity<YandexSmartHomeResponse> handleJsonParseException(HttpMessageNotReadableException ex) {
         log.warn("JSON parse error: {}", ex.getMessage());
 
-        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("invalid-json");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Invalid JSON");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /**
@@ -68,7 +68,7 @@ public class ApplicationExceptionHandler {
     public ResponseEntity<YandexSmartHomeResponse> handleGenericException(Exception ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
 
-        YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse("internal-error");
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse("Internal error");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

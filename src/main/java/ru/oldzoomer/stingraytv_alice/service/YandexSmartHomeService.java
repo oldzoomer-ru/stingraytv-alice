@@ -92,7 +92,7 @@ public class YandexSmartHomeService {
     public YandexSmartHomeResponse createValidationErrorResponse(String message) {
         return YandexSmartHomeResponse.builder()
                 .status("error")
-                .errorCode("VALIDATION_ERROR")
+                .errorCode("INVALID_VALUE")
                 .errorMessage(message)
                 .build();
     }
@@ -138,14 +138,6 @@ public class YandexSmartHomeService {
         // In a real implementation, we would revoke the token here
 
         return UserUnlinkResponse.builder()
-                .build();
-    }
-
-    public YandexSmartHomeResponse createMissingParameterErrorResponse() {
-        return YandexSmartHomeResponse.builder()
-                .status("error")
-                .errorCode("MISSING_PARAMETER_ERROR")
-                .errorMessage("missing parameter")
                 .build();
     }
 }
