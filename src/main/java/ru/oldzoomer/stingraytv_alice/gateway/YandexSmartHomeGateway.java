@@ -15,7 +15,9 @@ import ru.oldzoomer.stingraytv_alice.service.StingrayDeviceDiscoveryService;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService;
 
 /**
- * Main gateway for Yandex Smart Home integration with StingrayTV API
+ * Main gateway for Yandex Smart Home integration with StingrayTV API.
+ * This component handles all communication between Yandex Smart Home and the StingrayTV receiver.
+ * It processes requests, manages device capabilities, and coordinates with the service layer.
  */
 @Slf4j
 @Component
@@ -26,10 +28,17 @@ public class YandexSmartHomeGateway {
     private final StingrayDeviceDiscoveryService.Device stingrayDevice;
 
     /**
-     * Process Yandex Smart Home request with user ID and return response
+     * Processes Yandex Smart Home request with user ID and returns response.
+     * This is the main entry point for handling all Yandex Smart Home API requests.
+     *
+     * @param request the incoming request payload
+     * @param requestId unique identifier for the request
+     * @param userId identifier of the authenticated user
+     * @param type type of request being processed
+     * @return YandexSmartHomeResponse with the processed result
      */
     public YandexSmartHomeResponse processRequest(YandexSmartHomeRequest request, String requestId, String userId, QueryTypes type) {
-        log.info("Processing Yandex Smart Home request: {}, user: {}", requestId, userId);
+        log.debug("Processing Yandex Smart Home request: {}, user: {}", requestId, userId);
 
         try {
             // Handle query and action requests (with devices in payload)
@@ -40,7 +49,18 @@ public class YandexSmartHomeGateway {
         }
     }
 
+    /**
+     * Handles different types of device requests based on the request type.
+     * Routes requests to appropriate handlers for discovery, query, or action operations.
+     *
+     * @param request the incoming request payload
+     * @param requestId unique identifier for the request
+     * @param userId identifier of the authenticated user
+     * @param type type of request being processed
+     * @return YandexSmartHomeResponse with the processed result
+     */
     private YandexSmartHomeResponse handleDevicesRequest(YandexSmartHomeRequest request, String requestId, String userId, QueryTypes type) {
+        log.debug("Handling devices request of type: {}", type);
         // Determine request type based on payload structure
         return switch (type) {
             case DEVICES_QUERY -> handleQueryRequest(requestId, userId);
@@ -50,6 +70,14 @@ public class YandexSmartHomeGateway {
         };
     }
 
+    /**
+     * Handles device discovery requests.
+     * Returns information about available devices to Yandex Smart Home.
+     *
+     * @param requestId unique identifier for the request
+     * @param userId identifier of the authenticated user
+     * @return YandexSmartHomeResponse with device discovery information
+     */
     private YandexSmartHomeResponse handleDiscoveryRequest(String requestId, String userId) {
         log.info("Handling device discovery request for user: {}", userId);
 
@@ -74,6 +102,14 @@ public class YandexSmartHomeGateway {
                 .build();
     }
 
+    /**
+     * Handles device state query requests.
+     * Returns current state information for devices to Yandex Smart Home.
+     *
+     * @param requestId unique identifier for the request
+     * @param userId identifier of the authenticated user
+     * @return YandexSmartHomeResponse with device state information
+     */
     private YandexSmartHomeResponse handleQueryRequest(String requestId, String userId) {
         log.info("Handling device query request for user: {}", userId);
 
@@ -100,6 +136,15 @@ public class YandexSmartHomeGateway {
         }
     }
 
+    /**
+     * Handles device action requests.
+     * Processes commands to control devices from Yandex Smart Home.
+     *
+     * @param request the incoming request payload
+     * @param requestId unique identifier for the request
+     * @param userId identifier of the authenticated user
+     * @return YandexSmartHomeResponse with action execution results
+     */
     private YandexSmartHomeResponse handleActionRequest(YandexSmartHomeRequest request, String requestId, String userId) {
         log.info("Handling device action request for user: {}", userId);
 
@@ -123,6 +168,15 @@ public class YandexSmartHomeGateway {
         }
     }
 
+    /**
+     * Processes actions for a specific device.
+     * Executes individual capability actions for the device.
+     *
+     * @param device the device to process actions for
+     * @param requestId unique identifier for the request
+     * @param userId identifier of the authenticated user
+     * @return YandexSmartHomeResponse with action execution results
+     */
     private YandexSmartHomeResponse processDeviceActions(YandexSmartHomeRequest.Payload.Device device, String requestId, String userId) {
         boolean allActionsSuccessful = true;
 
@@ -154,6 +208,14 @@ public class YandexSmartHomeGateway {
         }
     }
 
+    /**
+     * Executes a specific device action based on capability type.
+     * Routes actions to appropriate handlers based on capability type.
+     *
+     * @param capabilityType type of capability being executed
+     * @param actionValue value for the action
+     * @return true if action was successful, false otherwise
+     */
     private boolean executeDeviceAction(String capabilityType, Object actionValue) {
         try {
             if (actionValue instanceof Map) {
@@ -178,6 +240,12 @@ public class YandexSmartHomeGateway {
         }
     }
 
+    /**
+     * Handles power state actions (on/off).
+     *
+     * @param actionValue value for the power action
+     * @return true if action was successful, false otherwise
+     */
     private boolean handlePowerAction(Object actionValue) {
         if (actionValue instanceof Map) {
             @SuppressWarnings("unchecked")
@@ -190,6 +258,13 @@ public class YandexSmartHomeGateway {
         return false;
     }
 
+    /**
+     * Handles range actions (volume, channel).
+     *
+     * @param instance type of range action (volume, channel)
+     * @param actionValue value for the action
+     * @return true if action was successful, false otherwise
+     */
     private boolean handleRangeAction(String instance, Object actionValue) {
         if (actionValue instanceof Map) {
             @SuppressWarnings("unchecked")
@@ -210,6 +285,12 @@ public class YandexSmartHomeGateway {
         return false;
     }
 
+    /**
+     * Creates the list of device capabilities.
+     * Defines what actions and properties this device supports.
+     *
+     * @return List of device capabilities
+     */
     private List<YandexSmartHomeResponse.Payload.Device.Capability> createDeviceCapabilities() {
         return List.of(
                 YandexSmartHomeResponse.Payload.Device.Capability.builder()
@@ -243,6 +324,12 @@ public class YandexSmartHomeGateway {
         );
     }
 
+    /**
+     * Creates the current capability states for device query requests.
+     * Returns the current state of device capabilities.
+     *
+     * @return List of current capability states
+     */
     private List<YandexSmartHomeResponse.Payload.Device.Capability> createCurrentCapabilityStates() {
         StingrayTVService.PowerState powerState = stingrayTVService.getPowerState();
         StingrayTVService.VolumeState volumeState = stingrayTVService.getVolumeState();
@@ -270,6 +357,12 @@ public class YandexSmartHomeGateway {
         );
     }
 
+    /**
+     * Creates the updated device state for action responses.
+     * Returns the updated state after executing actions.
+     *
+     * @return Device state with action results
+     */
     private YandexSmartHomeResponse.Payload.Device createUpdatedDeviceState() {
         return YandexSmartHomeResponse.Payload.Device.builder()
                 .id(stingrayDevice.serialNumber())
@@ -298,6 +391,13 @@ public class YandexSmartHomeGateway {
                 .build();
     }
 
+    /**
+     * Creates an error response for failed requests.
+     *
+     * @param requestId unique identifier for the request
+     * @param errorMessage error message to include in response
+     * @return YandexSmartHomeResponse with error status
+     */
     private YandexSmartHomeResponse createErrorResponse(String requestId, String errorMessage) {
         return YandexSmartHomeResponse.builder()
                 .requestId(requestId)
