@@ -1,12 +1,15 @@
 package ru.oldzoomer.stingraytv_alice.dto.yandex;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder
@@ -15,6 +18,7 @@ public class YandexSmartHomeResponse {
     @JsonProperty("request_id")
     private String requestId;
 
+    @NotNull
     private String status;
 
     @JsonProperty("error_code")
@@ -23,6 +27,7 @@ public class YandexSmartHomeResponse {
     @JsonProperty("error_message")
     private String errorMessage;
 
+    @Valid
     private Payload payload;
 
     @Data
@@ -32,22 +37,24 @@ public class YandexSmartHomeResponse {
         @JsonProperty("user_id")
         private String userId;
 
-        private List<Device> devices;
+        private List<@Valid Device> devices;
 
         @Data
         @Builder
         public static class Device {
+            @NotNull
             private String id;
             private String name;
             private String description;
             private String room;
             private String type;
-            private List<Capability> capabilities;
-            private List<Property> properties;
+            private List<@Valid Capability> capabilities;
+            private List<@Valid Property> properties;
 
             @Data
             @Builder
             public static class Capability {
+                @NotNull
                 private String type;
                 private boolean retrievable;
                 private Map<String, Object> parameters;
@@ -57,6 +64,7 @@ public class YandexSmartHomeResponse {
             @Data
             @Builder
             public static class Property {
+                @NotNull
                 private String type;
                 private boolean retrievable;
                 private Map<String, Object> parameters;

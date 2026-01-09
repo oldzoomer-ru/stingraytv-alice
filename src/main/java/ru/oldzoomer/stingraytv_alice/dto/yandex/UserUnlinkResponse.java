@@ -1,6 +1,8 @@
 package ru.oldzoomer.stingraytv_alice.dto.yandex;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +13,8 @@ import lombok.Data;
 @Data
 @Builder
 public class UserUnlinkResponse {
-
+ 
     @JsonProperty("request_id")
+    @NotNull
     private String requestId;
 }

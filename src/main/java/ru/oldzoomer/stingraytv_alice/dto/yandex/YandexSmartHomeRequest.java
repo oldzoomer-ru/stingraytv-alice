@@ -5,10 +5,13 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class YandexSmartHomeRequest {
+    @Valid
     private Payload payload;
 
     @Data
@@ -16,10 +19,12 @@ public class YandexSmartHomeRequest {
         @JsonProperty("user_id")
         private String userId;
 
-        private List<Device> devices;
+        @NotNull
+        private List<@Valid Device> devices;
 
         @Data
         public static class Device {
+            @NotNull
             private String id;
 
             private List<Map<String, Object>> capabilities;
