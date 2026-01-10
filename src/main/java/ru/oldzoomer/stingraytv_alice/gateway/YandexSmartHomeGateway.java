@@ -226,6 +226,7 @@ public class YandexSmartHomeGateway {
                 return switch (capabilityType) {
                     case "devices.capabilities.on_off" -> handlePowerAction(actionValue);
                     case "devices.capabilities.range" -> handleRangeAction(instance, actionValue);
+                    case "devices.capabilities.toggle" -> handleToggleAction(instance);
                     default -> {
                         log.warn("Unsupported capability type: {}", capabilityType);
                         yield false;
@@ -286,6 +287,24 @@ public class YandexSmartHomeGateway {
     }
 
     /**
+     * Handles toggle actions (mute, pause).
+     *
+     * @param instance type of toggle action (mute, pause)
+     * @param actionValue value for the action
+     * @return true if action was successful, false otherwise
+     */
+    private boolean handleToggleAction(String instance) {
+        return switch (instance) {
+                    case "mute" -> stingrayTVService.mute();
+                    case "pause" -> stingrayTVService.pause();
+                    default -> {
+                        log.warn("Unsupported toggle instance: {}", instance);
+                        yield false;
+                    }
+                };
+    }
+
+    /**
      * Creates the list of device capabilities.
      * Defines what actions and properties this device supports.
      *
@@ -320,6 +339,18 @@ public class YandexSmartHomeGateway {
                                         "max", 9999,
                                         "precision", 1
                                 )
+                        )).build(),
+                YandexSmartHomeResponse.Payload.Device.Capability.builder()
+                        .type("devices.capabilities.toggle")
+                        .retrievable(false)
+                        .parameters(Map.of(
+                                "instance", "mute"
+                        )).build(),
+                YandexSmartHomeResponse.Payload.Device.Capability.builder()
+                        .type("devices.capabilities.toggle")
+                        .retrievable(false)
+                        .parameters(Map.of(
+                                "instance", "pause"
                         )).build()
         );
     }
@@ -384,6 +415,20 @@ public class YandexSmartHomeGateway {
                                 .type("devices.capabilities.range")
                                 .state(Map.of(
                                         "instance", "volume",
+                                        "action_result", Map.of("status", "DONE")
+                                ))
+                                .build(),
+                        YandexSmartHomeResponse.Payload.Device.Capability.builder()
+                                .type("devices.capabilities.toggle")
+                                .state(Map.of(
+                                        "instance", "mute",
+                                        "action_result", Map.of("status", "DONE")
+                                ))
+                                .build(),
+                        YandexSmartHomeResponse.Payload.Device.Capability.builder()
+                                .type("devices.capabilities.toggle")
+                                .state(Map.of(
+                                        "instance", "pause",
                                         "action_result", Map.of("status", "DONE")
                                 ))
                                 .build()

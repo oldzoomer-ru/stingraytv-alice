@@ -245,6 +245,68 @@ public class StingrayTVService {
         }
     }
 
+    /**
+     * Sends a mute command to the StingrayTV device.
+     *
+     * @return true if successful, false otherwise
+     */
+    public boolean mute() {
+        try {
+            String baseUrl = device.baseUrl();
+            if (baseUrl == null) {
+                log.warn("Device base URL is null, cannot send mute command");
+                return false;
+            }
+
+            Map<String, String> requestBody = Map.of("key", "Volume Mute");
+            log.debug("Sending mute command to device at URL: {}", baseUrl + "/input/events");
+
+            restClient.post()
+                    .uri(baseUrl + "/input/events")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    .retrieve()
+                    .toBodilessEntity();
+
+            log.info("Successfully sent mute command to device at URL: {}", baseUrl);
+            return true;
+        } catch (Exception e) {
+            log.error("Error sending mute command to StingrayTV device at URL: {}", device.baseUrl(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Sends a play/pause command to the StingrayTV device.
+     *
+     * @return true if successful, false otherwise
+     */
+    public boolean pause() {
+        try {
+            String baseUrl = device.baseUrl();
+            if (baseUrl == null) {
+                log.warn("Device base URL is null, cannot send pause command");
+                return false;
+            }
+
+            Map<String, String> requestBody = Map.of("key", "Pause");
+            log.debug("Sending pause command to device at URL: {}", baseUrl + "/input/events");
+
+            restClient.post()
+                    .uri(baseUrl + "/input/events")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    .retrieve()
+                    .toBodilessEntity();
+
+            log.info("Successfully sent pause command to device at URL: {}", baseUrl);
+            return true;
+        } catch (Exception e) {
+            log.error("Error sending pause command to StingrayTV device at URL: {}", device.baseUrl(), e);
+            return false;
+        }
+    }
+
     @Builder
     @AllArgsConstructor
     @Data
