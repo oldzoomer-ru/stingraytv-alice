@@ -143,7 +143,8 @@ public class StingrayDeviceDiscoveryService {
             if (response != null && response.containsKey("userFriendlyModelName") &&
                     response.containsKey("serialNumber")) {
                 Device device = new Device(baseUrl, response.get("userFriendlyModelName").toString(),
-                        response.get("serialNumber").toString());
+                        response.get("serialNumber").toString(), response.get("hardwareId").toString(),
+                        response.get("softwareVersion").toString());
                 log.debug("Successfully validated device at URL: {}", baseUrl);
                 return Optional.of(device);
             } else {
@@ -164,6 +165,7 @@ public class StingrayDeviceDiscoveryService {
      * @param model device model name
      * @param serialNumber device serial number
      */
-    public record Device(String baseUrl, String model, String serialNumber) {
+    public record Device(String baseUrl, String model, String serialNumber,
+                         String hardwareId, String softwareVersion) {
     }
 }

@@ -8,7 +8,6 @@ import lombok.Data;
 
 /**
  * DTO for Yandex Smart Home user unlink response
- * Response format required by Yandex Smart Home API
  */
 @Data
 @Builder

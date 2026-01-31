@@ -44,8 +44,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1.0").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(
                         jwt -> jwt.jwtAuthenticationConverter(new KeycloakConverter())
@@ -79,11 +78,8 @@ public class SecurityConfig {
                 .readTimeout(Duration.ofSeconds(jwkReadTimeout))
                 .build();
 
-        // Create the NimbusJwtDecoder and provide the custom RestOperations
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkUrl)
+        return NimbusJwtDecoder.withJwkSetUri(jwkUrl)
                 .restOperations(rest)
                 .build();
-
-        return jwtDecoder;
     }
 }

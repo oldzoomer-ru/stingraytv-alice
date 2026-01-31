@@ -50,6 +50,10 @@ public class YandexSmartHomeResponse {
             private String type;
             private List<@Valid Capability> capabilities;
             private List<@Valid Property> properties;
+            @JsonProperty("status_info")
+            private @Valid StatusInfo statusInfo;
+            @JsonProperty("device_info")
+            private @Valid DeviceInfo deviceInfo;
 
             @Data
             @Builder
@@ -69,6 +73,23 @@ public class YandexSmartHomeResponse {
                 private boolean retrievable;
                 private Map<String, Object> parameters;
                 private Map<String, Object> state;
+            }
+
+            @Data
+            @Builder
+            public static class StatusInfo {
+                private boolean reportable;
+            }
+
+            @Data
+            @Builder
+            public static class DeviceInfo {
+                private String manufacturer;
+                private String model;
+                @JsonProperty("hw_version")
+                private String hwVersion;
+                @JsonProperty("sw_version")
+                private String swVersion;
             }
         }
     }
