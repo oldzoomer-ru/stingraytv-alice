@@ -6,6 +6,7 @@ package ru.oldzoomer.stingraytv_alice.converter;
 
 // Edited and clean upped by Egor Gavrilov (@oldzoomer-ru on GitHub)
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class KeycloakConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+public class KeycloakConverter implements Converter<@NonNull Jwt, AbstractAuthenticationToken> {
 
     @Override
     @NullMarked

@@ -38,7 +38,7 @@ class YandexSmartHomeControllerTest {
 
     // TestContainers Keycloak instance – not used directly in mocks but demonstrates integration setup
     @Container
-    static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:latest")
+    static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:latest")
             .withAdminUsername("admin")
             .withAdminPassword("password")
             .withRealmImportFile("realm.json")
@@ -134,7 +134,6 @@ class YandexSmartHomeControllerTest {
     }
 
     @Test
-    @WithMockUser
     void unlinkUser_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
         YandexSmartHomeRequest request = new YandexSmartHomeRequest();

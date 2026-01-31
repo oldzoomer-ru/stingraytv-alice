@@ -37,7 +37,8 @@ public class YandexSmartHomeGateway {
      * @param type type of request being processed
      * @return YandexSmartHomeResponse with the processed result
      */
-    public YandexSmartHomeResponse processRequest(YandexSmartHomeRequest request, String requestId, String userId, QueryTypes type) {
+    public YandexSmartHomeResponse processRequest(YandexSmartHomeRequest request, String requestId,
+                                                  String userId, QueryTypes type) {
         log.debug("Processing Yandex Smart Home request: {}, user: {}", requestId, userId);
 
         try {
@@ -59,7 +60,8 @@ public class YandexSmartHomeGateway {
      * @param type type of request being processed
      * @return YandexSmartHomeResponse with the processed result
      */
-    private YandexSmartHomeResponse handleDevicesRequest(YandexSmartHomeRequest request, String requestId, String userId, QueryTypes type) {
+    private YandexSmartHomeResponse handleDevicesRequest(YandexSmartHomeRequest request, String requestId,
+                                                         String userId, QueryTypes type) {
         log.debug("Handling devices request of type: {}", type);
         // Determine request type based on payload structure
         return switch (type) {
@@ -88,6 +90,9 @@ public class YandexSmartHomeGateway {
                 .room(stingrayConfigurationProperties.getRoom())
                 .type("devices.types.media_device.receiver")
                 .capabilities(createDeviceCapabilities())
+                .statusInfo(createStatusInfo())
+                .deviceInfo(createDeviceInfo(stingrayDevice.model(),
+                        stingrayDevice.hardwareId(), stingrayDevice.softwareVersion()))
                 .build();
 
         YandexSmartHomeResponse.Payload payload = YandexSmartHomeResponse.Payload.builder()
@@ -145,7 +150,8 @@ public class YandexSmartHomeGateway {
      * @param userId identifier of the authenticated user
      * @return YandexSmartHomeResponse with action execution results
      */
-    private YandexSmartHomeResponse handleActionRequest(YandexSmartHomeRequest request, String requestId, String userId) {
+    private YandexSmartHomeResponse handleActionRequest(YandexSmartHomeRequest request, String requestId,
+                                                        String userId) {
         log.info("Handling device action request for user: {}", userId);
 
         try {
@@ -177,7 +183,8 @@ public class YandexSmartHomeGateway {
      * @param userId identifier of the authenticated user
      * @return YandexSmartHomeResponse with action execution results
      */
-    private YandexSmartHomeResponse processDeviceActions(YandexSmartHomeRequest.Payload.Device device, String requestId, String userId) {
+    private YandexSmartHomeResponse processDeviceActions(YandexSmartHomeRequest.Payload.Device device,
+                                                         String requestId, String userId) {
         boolean allActionsSuccessful = true;
 
         if (device.getCapabilities() != null) {
@@ -290,7 +297,6 @@ public class YandexSmartHomeGateway {
      * Handles toggle actions (mute, pause).
      *
      * @param instance type of toggle action (mute, pause)
-     * @param actionValue value for the action
      * @return true if action was successful, false otherwise
      */
     private boolean handleToggleAction(String instance) {
@@ -449,6 +455,35 @@ public class YandexSmartHomeGateway {
                 .status("error")
                 .errorCode("INTERNAL_ERROR")
                 .errorMessage(errorMessage)
+                .build();
+    }
+
+    /**
+     * Creates a StatusInfo object with the given status.
+     *
+     * @return A StatusInfo object with the given status.
+     */
+    private YandexSmartHomeResponse.Payload.Device.StatusInfo createStatusInfo() {
+        return YandexSmartHomeResponse.Payload.Device.StatusInfo.builder()
+                .reportable(true)
+                .build();
+    }
+
+    /**
+     * Creates a DeviceInfo object with the given manufacturer, model, hwVersion, and swVersion.
+     *
+     * @param model     The model of the device.
+     * @param hwVersion The hardware version of the device.
+     * @param swVersion The software version of the device.
+     * @return DeviceInfo with the given manufacturer, model, hwVersion, and swVersion.
+     */
+    private YandexSmartHomeResponse.Payload.Device.DeviceInfo createDeviceInfo(String model, String hwVersion,
+                                                                               String swVersion) {
+        return YandexSmartHomeResponse.Payload.Device.DeviceInfo.builder()
+                .manufacturer("General Satellite")
+                .model(model)
+                .hwVersion(hwVersion)
+                .swVersion(swVersion)
                 .build();
     }
 }

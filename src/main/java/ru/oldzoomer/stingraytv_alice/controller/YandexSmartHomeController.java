@@ -1,8 +1,10 @@
 package ru.oldzoomer.stingraytv_alice.controller;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -34,6 +36,7 @@ import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1.0")
+@PreAuthorize("isAuthenticated()")
 public class YandexSmartHomeController {
 
     private final YandexSmartHomeService smartHomeService;
@@ -46,7 +49,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with device discovery response
      */
     @GetMapping("/user/devices")
-    public ResponseEntity<YandexSmartHomeResponse> getUserDevices(@RequestHeader("X-Request-Id") String requestId) {
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> getUserDevices(@RequestHeader("X-Request-Id") String requestId) {
         log.debug("Processing device discovery request with ID: {}", requestId);
         YandexSmartHomeResponse response = smartHomeService.processUserDevicesRequest(requestId);
         return ResponseEntity.ok(response);
@@ -61,7 +64,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with device state query response
      */
     @PostMapping("/user/devices/query")
-    public ResponseEntity<YandexSmartHomeResponse> queryDeviceStates(
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> queryDeviceStates(
             @Valid @RequestBody YandexSmartHomeRequest request,
             @RequestHeader("X-Request-Id") String requestId) {
         log.debug("Processing device query request with ID: {}", requestId);
@@ -78,7 +81,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with device action response
      */
     @PostMapping("/user/devices/action")
-    public ResponseEntity<YandexSmartHomeResponse> executeDeviceAction(
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> executeDeviceAction(
             @Valid @RequestBody YandexSmartHomeRequest request,
             @RequestHeader("X-Request-Id") String requestId) {
         log.debug("Processing device action request with ID: {}", requestId);
@@ -95,7 +98,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with user unlink response
      */
     @PostMapping("/user/unlink")
-    public ResponseEntity<UserUnlinkResponse> unlinkUser(
+    public ResponseEntity<@NonNull UserUnlinkResponse> unlinkUser(
             @RequestHeader("X-Request-Id") String requestId) {
         log.debug("Processing user unlink request with ID: {}", requestId);
         UserUnlinkResponse response = smartHomeService.processUserUnlinkRequest(requestId);
@@ -111,7 +114,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with error response
      */
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<YandexSmartHomeResponse> handleResourceNotFoundException(NoResourceFoundException ex, WebRequest request) {
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> handleResourceNotFoundException(NoResourceFoundException ex, WebRequest request) {
         log.warn("Page is not found: {}", ex.getResourcePath());
 
         YandexSmartHomeResponse response = smartHomeService.createNotFoundResponse();
@@ -126,7 +129,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with error response
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<YandexSmartHomeResponse> handleMissingParameters(
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> handleMissingParameters(
             MissingServletRequestParameterException ex) {
         log.warn("Missing parameter: {}", ex.getMessage());
 
@@ -142,7 +145,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with validation error response
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<YandexSmartHomeResponse> handleValidationExceptions(
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
         log.warn("Validation error in request: {}", ex.getMessage());
         log.debug("Validation errors: {}", ex.getBindingResult().getFieldErrors());
@@ -159,7 +162,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with validation error response
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<YandexSmartHomeResponse> handleJsonParseException(HttpMessageNotReadableException ex) {
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> handleJsonParseException(HttpMessageNotReadableException ex) {
         log.warn("JSON parse error in request: {}", ex.getMessage());
 
         YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Invalid JSON");
@@ -174,7 +177,7 @@ public class YandexSmartHomeController {
      * @return ResponseEntity with internal error response
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<YandexSmartHomeResponse> handleGenericException(Exception ex) {
+    public ResponseEntity<@NonNull YandexSmartHomeResponse> handleGenericException(Exception ex) {
         log.error("Unexpected error processing request", ex);
 
         YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse("Internal error");
