@@ -1,13 +1,5 @@
 package ru.oldzoomer.stingraytv_alice.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -20,29 +12,24 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import dasniko.testcontainers.keycloak.KeycloakContainer;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.UserUnlinkResponse;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
 import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest
 @AutoConfigureMockMvc
-@Testcontainers
 @WithMockUser(username = "test-user-id")
 class YandexSmartHomeControllerTest {
-
-    // TestContainers Keycloak instance – not used directly in mocks but demonstrates integration setup
-    @Container
-    static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:latest")
-            .withAdminUsername("admin")
-            .withAdminPassword("password")
-            .withRealmImportFile("realm.json")
-            .withExposedPorts(8080, 9000);
 
     @Autowired
     private MockMvc mockMvc;
@@ -56,7 +43,7 @@ class YandexSmartHomeControllerTest {
     @DynamicPropertySource
     static void setDynamicProperties(DynamicPropertyRegistry registry) {
         registry.add("app.security.jwt.jwk-url",
-                () -> keycloak.getAuthServerUrl() + "/auth/realms/test/protocol/openid-connect/certs");
+                () -> "http://localhost/auth/realms/test/protocol/openid-connect/certs");
     }
 
     @Test
