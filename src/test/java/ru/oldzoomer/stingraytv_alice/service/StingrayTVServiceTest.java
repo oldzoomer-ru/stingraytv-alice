@@ -1,10 +1,5 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.when;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,10 +8,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
-
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.ChannelState;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.PowerState;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService.VolumeState;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StingrayTVServiceTest {
@@ -160,7 +159,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isEqualTo(0);
+        assertThat(result.getState()).isZero();
     }
 
     @Test
@@ -174,7 +173,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isEqualTo(0);
+        assertThat(result.getState()).isZero();
     }
 
     @Test
@@ -259,7 +258,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getChannelNumber()).isEqualTo(0);
+        assertThat(result.getChannelNumber()).isZero();
         assertThat(result.getChannelListId()).isEqualTo("Unknown");
     }
 
@@ -273,7 +272,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getChannelNumber()).isEqualTo(0);
+        assertThat(result.getChannelNumber()).isZero();
         assertThat(result.getChannelListId()).isEqualTo("Unknown");
     }
 
