@@ -48,7 +48,7 @@ RUN ./gradlew :build --no-daemon -x test;
 #
 # Java image for the application to run in.
 #
-FROM gcr.io/distroless/java21-debian13:nonroot
+FROM gcr.io/distroless/java25-debian13:nonroot
 
 #
 # Build arguments
