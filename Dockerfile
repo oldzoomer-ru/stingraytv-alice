@@ -1,17 +1,3 @@
-#
-# Dockerfile for StingrayTV Alice
-#
-# Features:
-# - Multi-stage сборка (build + runtime)
-# - Пропуск тестов при сборке (по умолчанию)
-# - Кэширование зависимостей Gradle
-#
-# Требования:
-# - Docker 20.10+
-#
-# Использование:
-# docker build -t stingraytv-alice .
-#
 ARG BUILD_HOME=/build
 
 #
