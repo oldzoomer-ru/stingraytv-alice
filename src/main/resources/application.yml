@@ -1,5 +1,9 @@
-application:
+spring:
+  application:
     name: stingraytv-alice
+  threads:
+    virtual:
+      enabled: true
 
 logging:
   level:

@@ -50,14 +50,14 @@ class StingrayTVServiceTest {
         when(requestHeadersUriSpec.uri(BASE_URL + "/power")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(PowerState.class)).thenReturn(PowerState.builder().state("on").build());
+        when(responseSpec.body(PowerState.class)).thenReturn(new PowerState("on"));
 
         // Act
         PowerState result = stingrayTVService.getPowerState();
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isEqualTo("on");
+        assertThat(result.state()).isEqualTo("on");
     }
 
     @Test
@@ -70,7 +70,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isEqualTo("offline");
+        assertThat(result.state()).isEqualTo("offline");
     }
 
     @Test
@@ -84,7 +84,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isEqualTo("offline");
+        assertThat(result.state()).isEqualTo("offline");
     }
 
     @Test
@@ -139,14 +139,14 @@ class StingrayTVServiceTest {
         when(requestHeadersUriSpec.uri(BASE_URL + "/volume")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(VolumeState.class)).thenReturn(VolumeState.builder().state(75).build());
+        when(responseSpec.body(VolumeState.class)).thenReturn(new VolumeState(20, 75));
 
         // Act
         VolumeState result = stingrayTVService.getVolumeState();
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isEqualTo(75);
+        assertThat(result.state()).isEqualTo(75);
     }
 
     @Test
@@ -159,7 +159,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isZero();
+        assertThat(result.state()).isZero();
     }
 
     @Test
@@ -173,7 +173,7 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getState()).isZero();
+        assertThat(result.state()).isZero();
     }
 
     @Test
@@ -236,16 +236,15 @@ class StingrayTVServiceTest {
         when(requestHeadersUriSpec.uri(BASE_URL + "/channels/current")).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.accept(any())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(ChannelState.class)).thenReturn(ChannelState.builder()
-                .channelNumber(5).channelListId("Unknown").build());
+        when(responseSpec.body(ChannelState.class)).thenReturn(new ChannelState(5, "Unknown"));
 
         // Act
         ChannelState result = stingrayTVService.getCurrentChannel();
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getChannelNumber()).isEqualTo(5);
-        assertThat(result.getChannelListId()).isEqualTo("Unknown");
+        assertThat(result.channelNumber()).isEqualTo(5);
+        assertThat(result.channelListId()).isEqualTo("Unknown");
     }
 
     @Test
@@ -258,8 +257,8 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getChannelNumber()).isZero();
-        assertThat(result.getChannelListId()).isEqualTo("Unknown");
+        assertThat(result.channelNumber()).isZero();
+        assertThat(result.channelListId()).isEqualTo("Unknown");
     }
 
     @Test
@@ -272,8 +271,8 @@ class StingrayTVServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getChannelNumber()).isZero();
-        assertThat(result.getChannelListId()).isEqualTo("Unknown");
+        assertThat(result.channelNumber()).isZero();
+        assertThat(result.channelListId()).isEqualTo("Unknown");
     }
 
     @Test

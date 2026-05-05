@@ -1,20 +1,19 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import java.util.Optional;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.UserUnlinkResponse;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
 import ru.oldzoomer.stingraytv_alice.enums.QueryTypes;
 import ru.oldzoomer.stingraytv_alice.gateway.YandexSmartHomeGateway;
+
+import java.util.Optional;
 
 /**
  * Service for handling Yandex Smart Home business logic.
@@ -39,7 +38,7 @@ public class YandexSmartHomeService {
     public YandexSmartHomeResponse processUserDevicesRequest(String requestId) {
         log.debug("Processing user devices discovery request with ID: {}", requestId);
         // Create a minimal request for discovery
-        YandexSmartHomeRequest request = new YandexSmartHomeRequest();
+        YandexSmartHomeRequest request = new YandexSmartHomeRequest(null);
 
         // Pass user ID to gateway for inclusion in response
         return processAuthenticatedRequest(request, requestId, "discovery request", QueryTypes.DEVICES_DISCOVERY);
@@ -83,8 +82,7 @@ public class YandexSmartHomeService {
         String userId = getCurrentUserId().orElse("unknown");
         log.info("Processing user unlink request from user: {}, request_id: {}", userId, requestId);
 
-        return UserUnlinkResponse.builder()
-                .build();
+        return new UserUnlinkResponse(requestId);
     }
 
     /**
@@ -128,11 +126,7 @@ public class YandexSmartHomeService {
      * @return YandexSmartHomeResponse with validation error status
      */
     public YandexSmartHomeResponse createValidationErrorResponse(String message) {
-        return YandexSmartHomeResponse.builder()
-                .status("error")
-                .errorCode("INVALID_VALUE")
-                .errorMessage(message)
-                .build();
+        return new YandexSmartHomeResponse(null, "error", "INVALID_VALUE", message, null);
     }
 
     /**
@@ -143,11 +137,7 @@ public class YandexSmartHomeService {
      * @return YandexSmartHomeResponse with internal error status
      */
     public YandexSmartHomeResponse createInternalErrorResponse(String message) {
-        return YandexSmartHomeResponse.builder()
-                .status("error")
-                .errorCode("INTERNAL_ERROR")
-                .errorMessage(message)
-                .build();
+        return new YandexSmartHomeResponse(null, "error", "INTERNAL_ERROR", message, null);
     }
 
     /**
@@ -157,10 +147,6 @@ public class YandexSmartHomeService {
      * @return YandexSmartHomeResponse with not found error status
      */
     public YandexSmartHomeResponse createNotFoundResponse() {
-        return YandexSmartHomeResponse.builder()
-                .status("error")
-                .errorCode("NOT_FOUND")
-                .errorMessage("Not found")
-                .build();
+        return new YandexSmartHomeResponse(null, "error", "NOT_FOUND", "Not found", null);
     }
 }

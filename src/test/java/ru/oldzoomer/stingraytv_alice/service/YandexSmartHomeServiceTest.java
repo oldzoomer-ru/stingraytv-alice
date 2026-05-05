@@ -1,13 +1,5 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.time.Instant;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,12 +9,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-
 import ru.oldzoomer.stingraytv_alice.dto.yandex.UserUnlinkResponse;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
 import ru.oldzoomer.stingraytv_alice.enums.QueryTypes;
 import ru.oldzoomer.stingraytv_alice.gateway.YandexSmartHomeGateway;
+
+import java.time.Instant;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for YandexSmartHomeService
@@ -44,7 +43,7 @@ class YandexSmartHomeServiceTest {
     @Test
     void processDeviceQueryRequest_WhenAuthenticated_ShouldReturnResponse() {
         // Given
-        YandexSmartHomeRequest request = new YandexSmartHomeRequest();
+        YandexSmartHomeRequest request = new YandexSmartHomeRequest(null);
         YandexSmartHomeResponse expectedResponse = createTestResponse();
         String requestId = "test-request-id";
 
@@ -62,7 +61,7 @@ class YandexSmartHomeServiceTest {
     @Test
     void processDeviceActionRequest_WhenAuthenticated_ShouldReturnResponse() {
         // Given
-        YandexSmartHomeRequest request = new YandexSmartHomeRequest();
+        YandexSmartHomeRequest request = new YandexSmartHomeRequest(null);
         YandexSmartHomeResponse expectedResponse = createTestResponse();
         String requestId = "test-request-id";
 
@@ -101,9 +100,9 @@ class YandexSmartHomeServiceTest {
         YandexSmartHomeResponse response = smartHomeService.createValidationErrorResponse("Invalid request parameters");
 
         // Then
-        assertThat(response.getStatus()).isEqualTo("error");
-        assertThat(response.getErrorCode()).isEqualTo("INVALID_VALUE");
-        assertThat(response.getErrorMessage()).isEqualTo("Invalid request parameters");
+        assertThat(response.status()).isEqualTo("error");
+        assertThat(response.errorCode()).isEqualTo("INVALID_VALUE");
+        assertThat(response.errorMessage()).isEqualTo("Invalid request parameters");
     }
 
     @Test
@@ -112,9 +111,9 @@ class YandexSmartHomeServiceTest {
         YandexSmartHomeResponse response = smartHomeService.createInternalErrorResponse("Internal server error");
 
         // Then
-        assertThat(response.getStatus()).isEqualTo("error");
-        assertThat(response.getErrorCode()).isEqualTo("INTERNAL_ERROR");
-        assertThat(response.getErrorMessage()).isEqualTo("Internal server error");
+        assertThat(response.status()).isEqualTo("error");
+        assertThat(response.errorCode()).isEqualTo("INTERNAL_ERROR");
+        assertThat(response.errorMessage()).isEqualTo("Internal server error");
     }
 
     @Test
@@ -157,9 +156,6 @@ class YandexSmartHomeServiceTest {
     }
 
     private YandexSmartHomeResponse createTestResponse() {
-        return YandexSmartHomeResponse.builder()
-                .requestId("test-request-id")
-                .status("success")
-                .build();
+        return new YandexSmartHomeResponse("test-request-id", "success", null, null, null);
     }
 }

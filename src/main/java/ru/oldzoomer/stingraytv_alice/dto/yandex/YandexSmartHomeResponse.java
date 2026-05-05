@@ -1,95 +1,92 @@
 package ru.oldzoomer.stingraytv_alice.dto.yandex;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class YandexSmartHomeResponse {
+public record YandexSmartHomeResponse(
     @JsonProperty("request_id")
-    private String requestId;
+    String requestId,
 
     @NotNull
-    private String status;
+    String status,
 
     @JsonProperty("error_code")
-    private String errorCode;
+    String errorCode,
 
     @JsonProperty("error_message")
-    private String errorMessage;
+    String errorMessage,
 
     @Valid
-    private Payload payload;
-
-    @Data
-    @Builder
+    Payload payload
+) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class Payload {
+    public record Payload(
         @JsonProperty("user_id")
-        private String userId;
+        String userId,
 
-        private List<@Valid Device> devices;
-
-        @Data
-        @Builder
-        public static class Device {
+        @Valid
+        List<@Valid Device> devices
+    ) {
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public record Device(
             @NotNull
-            private String id;
-            private String name;
-            private String description;
-            private String room;
-            private String type;
-            private List<@Valid Capability> capabilities;
-            private List<@Valid Property> properties;
+            String id,
+            String name,
+            String description,
+            String room,
+            String type,
+            @Valid
+            List<@Valid Capability> capabilities,
+            @Valid
+            List<@Valid Property> properties,
             @JsonProperty("status_info")
-            private @Valid StatusInfo statusInfo;
+            @Valid
+            StatusInfo statusInfo,
             @JsonProperty("device_info")
-            private @Valid DeviceInfo deviceInfo;
-
-            @Data
-            @Builder
-            public static class Capability {
+            @Valid
+            DeviceInfo deviceInfo
+        ) {
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            public record Capability(
                 @NotNull
-                private String type;
-                private boolean retrievable;
-                private Map<String, Object> parameters;
-                private Map<String, Object> state;
+                String type,
+                boolean retrievable,
+                Map<String, Object> parameters,
+                Map<String, Object> state
+            ) {
             }
 
-            @Data
-            @Builder
-            public static class Property {
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            public record Property(
                 @NotNull
-                private String type;
-                private boolean retrievable;
-                private Map<String, Object> parameters;
-                private Map<String, Object> state;
+                String type,
+                boolean retrievable,
+                Map<String, Object> parameters,
+                Map<String, Object> state
+            ) {
             }
 
-            @Data
-            @Builder
-            public static class StatusInfo {
-                private boolean reportable;
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            public record StatusInfo(
+                    boolean reportable
+            ) {
             }
 
-            @Data
-            @Builder
-            public static class DeviceInfo {
-                private String manufacturer;
-                private String model;
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            public record DeviceInfo(
+                    String manufacturer,
+                    String model,
                 @JsonProperty("hw_version")
-                private String hwVersion;
+                    String hwVersion,
                 @JsonProperty("sw_version")
-                private String swVersion;
+                    String swVersion
+            ) {
             }
         }
     }

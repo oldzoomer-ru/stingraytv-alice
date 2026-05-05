@@ -1,18 +1,17 @@
 package ru.oldzoomer.stingraytv_alice.gateway;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import ru.oldzoomer.stingraytv_alice.config.StingrayConfigurationProperties;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeRequest;
 import ru.oldzoomer.stingraytv_alice.dto.yandex.YandexSmartHomeResponse;
 import ru.oldzoomer.stingraytv_alice.enums.QueryTypes;
 import ru.oldzoomer.stingraytv_alice.service.StingrayDeviceDiscoveryService;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Main gateway for Yandex Smart Home integration with StingrayTV API.
@@ -83,28 +82,25 @@ public class YandexSmartHomeGateway {
     private YandexSmartHomeResponse handleDiscoveryRequest(String requestId, String userId) {
         log.info("Handling device discovery request for user: {}", userId);
 
-        YandexSmartHomeResponse.Payload.Device device = YandexSmartHomeResponse.Payload.Device.builder()
-                .id(stingrayDevice.serialNumber())
-                .name(stingrayDevice.model())
-                .description(stingrayConfigurationProperties.getDeviceDescription())
-                .room(stingrayConfigurationProperties.getRoom())
-                .type("devices.types.media_device.receiver")
-                .capabilities(createDeviceCapabilities())
-                .statusInfo(createStatusInfo())
-                .deviceInfo(createDeviceInfo(stingrayDevice.model(),
-                        stingrayDevice.hardwareId(), stingrayDevice.softwareVersion()))
-                .build();
+        YandexSmartHomeResponse.Payload.Device device = new YandexSmartHomeResponse.Payload.Device(
+                stingrayDevice.serialNumber(),
+                stingrayDevice.model(),
+                stingrayConfigurationProperties.getDeviceDescription(),
+                stingrayConfigurationProperties.getRoom(),
+                "devices.types.media_device.receiver",
+                createDeviceCapabilities(),
+                null,
+                createStatusInfo(),
+                createDeviceInfo(stingrayDevice.model(),
+                        stingrayDevice.hardwareId(), stingrayDevice.softwareVersion())
+        );
 
-        YandexSmartHomeResponse.Payload payload = YandexSmartHomeResponse.Payload.builder()
-                .userId(userId)
-                .devices(List.of(device))
-                .build();
+        YandexSmartHomeResponse.Payload payload = new YandexSmartHomeResponse.Payload(
+                userId,
+                List.of(device)
+        );
 
-        return YandexSmartHomeResponse.builder()
-                .requestId(requestId)
-                .status("ok")
-                .payload(payload)
-                .build();
+        return new YandexSmartHomeResponse(requestId, "ok", null, null, payload);
     }
 
     /**
@@ -119,21 +115,24 @@ public class YandexSmartHomeGateway {
         log.info("Handling device query request for user: {}", userId);
 
         try {
-            YandexSmartHomeResponse.Payload.Device device = YandexSmartHomeResponse.Payload.Device.builder()
-                    .id(stingrayDevice.serialNumber())
-                    .capabilities(createCurrentCapabilityStates())
-                    .build();
+            YandexSmartHomeResponse.Payload.Device device = new YandexSmartHomeResponse.Payload.Device(
+                    stingrayDevice.serialNumber(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    createCurrentCapabilityStates(),
+                    null,
+                    null,
+                    null
+            );
 
-            YandexSmartHomeResponse.Payload payload = YandexSmartHomeResponse.Payload.builder()
-                    .userId(userId)
-                    .devices(List.of(device))
-                    .build();
+            YandexSmartHomeResponse.Payload payload = new YandexSmartHomeResponse.Payload(
+                    userId,
+                    List.of(device)
+            );
 
-            return YandexSmartHomeResponse.builder()
-                    .requestId(requestId)
-                    .status("ok")
-                    .payload(payload)
-                    .build();
+            return new YandexSmartHomeResponse(requestId, "ok", null, null, payload);
 
         } catch (Exception e) {
             log.error("Error handling query request", e);
@@ -155,13 +154,13 @@ public class YandexSmartHomeGateway {
         log.info("Handling device action request for user: {}", userId);
 
         try {
-            if (request.getPayload().getDevices() == null || request.getPayload().getDevices().isEmpty()) {
+            if (request.payload().devices() == null || request.payload().devices().isEmpty()) {
                 return createErrorResponse(requestId, "No devices specified in action request");
             }
 
             // Process actions for each device
-            for (YandexSmartHomeRequest.Payload.Device device : request.getPayload().getDevices()) {
-                if (stingrayDevice.serialNumber().equals(device.getId())) {
+            for (YandexSmartHomeRequest.Payload.Device device : request.payload().devices()) {
+                if (stingrayDevice.serialNumber().equals(device.id())) {
                     return processDeviceActions(device, requestId, userId);
                 }
             }
@@ -187,8 +186,8 @@ public class YandexSmartHomeGateway {
                                                          String requestId, String userId) {
         boolean allActionsSuccessful = true;
 
-        if (device.getCapabilities() != null) {
-            for (Map<String, Object> capability : device.getCapabilities()) {
+        if (device.capabilities() != null) {
+            for (Map<String, Object> capability : device.capabilities()) {
                 if (capability.containsKey("type") && capability.containsKey("state")) {
                     String capabilityType = (String) capability.get("type");
                     Object actionValue = capability.get("state");
@@ -202,14 +201,16 @@ public class YandexSmartHomeGateway {
         }
 
         if (allActionsSuccessful) {
-            return YandexSmartHomeResponse.builder()
-                    .requestId(requestId)
-                    .status("ok")
-                    .payload(YandexSmartHomeResponse.Payload.builder()
-                            .userId(userId)
-                            .devices(List.of(createUpdatedDeviceState()))
-                            .build())
-                    .build();
+            return new YandexSmartHomeResponse(
+                    requestId,
+                    "ok",
+                    null,
+                    null,
+                    new YandexSmartHomeResponse.Payload(
+                            userId,
+                            List.of(createUpdatedDeviceState())
+                    )
+            );
         } else {
             return createErrorResponse(requestId, "Some actions failed to execute");
         }
@@ -318,46 +319,17 @@ public class YandexSmartHomeGateway {
      */
     private List<YandexSmartHomeResponse.Payload.Device.Capability> createDeviceCapabilities() {
         return List.of(
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.on_off")
-                        .retrievable(true)
-                        .build(),
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.range")
-                        .retrievable(true)
-                        .parameters(Map.of(
-                                "instance", "volume",
-                                "unit", "unit.percent",
-                                "range", Map.of(
-                                        "min", 0,
-                                        "max", 20,
-                                        "precision", 1
-                                )
-                        )).build(),
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.range")
-                        .retrievable(true)
-                        .parameters(Map.of(
-                                "instance", "channel",
-                                "random_access", true,
-                                "range", Map.of(
-                                        "min", 0,
-                                        "max", 9999,
-                                        "precision", 1
-                                )
-                        )).build(),
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.toggle")
-                        .retrievable(false)
-                        .parameters(Map.of(
-                                "instance", "mute"
-                        )).build(),
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.toggle")
-                        .retrievable(false)
-                        .parameters(Map.of(
-                                "instance", "pause"
-                        )).build()
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.on_off", true, null, null),
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", true,
+                        Map.of("instance", "volume", "unit", "unit.percent",
+                                "range", Map.of("min", 0, "max", 20, "precision", 1)), null),
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", true,
+                        Map.of("instance", "channel", "random_access", true,
+                                "range", Map.of("min", 0, "max", 9999, "precision", 1)), null),
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.toggle", false,
+                        Map.of("instance", "mute"), null),
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.toggle", false,
+                        Map.of("instance", "pause"), null)
         );
     }
 
@@ -373,24 +345,12 @@ public class YandexSmartHomeGateway {
         StingrayTVService.ChannelState channelState = stingrayTVService.getCurrentChannel();
 
         return List.of(
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.on_off")
-                        .state(Map.of(
-                                "instance", "on",
-                                "value", "on".equals(powerState.getState())
-                        )).build(),
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.range")
-                        .state(Map.of(
-                                "instance", "channel",
-                                "value", channelState.getChannelNumber()
-                        )).build(),
-                YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                        .type("devices.capabilities.range")
-                        .state(Map.of(
-                                "instance", "volume",
-                                "value", volumeState.getState()
-                        )).build()
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.on_off", false,
+                        null, Map.of("instance", "on", "value", "on".equals(powerState.state()))),
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
+                        null, Map.of("instance", "channel", "value", channelState.channelNumber())),
+                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
+                        null, Map.of("instance", "volume", "value", volumeState.state()))
         );
     }
 
@@ -401,45 +361,28 @@ public class YandexSmartHomeGateway {
      * @return Device state with action results
      */
     private YandexSmartHomeResponse.Payload.Device createUpdatedDeviceState() {
-        return YandexSmartHomeResponse.Payload.Device.builder()
-                .id(stingrayDevice.serialNumber())
-                .capabilities(List.of(
-                        YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                                .type("devices.capabilities.on_off")
-                                .state(Map.of(
-                                        "instance", "on",
-                                        "action_result", Map.of("status", "DONE")
-                                ))
-                                .build(),
-                        YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                                .type("devices.capabilities.range")
-                                .state(Map.of(
-                                        "instance", "channel",
-                                        "action_result", Map.of("status", "DONE")
-                                )).build(),
-                        YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                                .type("devices.capabilities.range")
-                                .state(Map.of(
-                                        "instance", "volume",
-                                        "action_result", Map.of("status", "DONE")
-                                ))
-                                .build(),
-                        YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                                .type("devices.capabilities.toggle")
-                                .state(Map.of(
-                                        "instance", "mute",
-                                        "action_result", Map.of("status", "DONE")
-                                ))
-                                .build(),
-                        YandexSmartHomeResponse.Payload.Device.Capability.builder()
-                                .type("devices.capabilities.toggle")
-                                .state(Map.of(
-                                        "instance", "pause",
-                                        "action_result", Map.of("status", "DONE")
-                                ))
-                                .build()
-                ))
-                .build();
+        return new YandexSmartHomeResponse.Payload.Device(
+                stingrayDevice.serialNumber(),
+                null,
+                null,
+                null,
+                null,
+                List.of(
+                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.on_off", false,
+                                null, Map.of("instance", "on", "action_result", Map.of("status", "DONE"))),
+                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
+                                null, Map.of("instance", "channel", "action_result", Map.of("status", "DONE"))),
+                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
+                                null, Map.of("instance", "volume", "action_result", Map.of("status", "DONE"))),
+                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.toggle", false,
+                                null, Map.of("instance", "mute", "action_result", Map.of("status", "DONE"))),
+                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.toggle", false,
+                                null, Map.of("instance", "pause", "action_result", Map.of("status", "DONE")))
+                ),
+                null,
+                null,
+                null
+        );
     }
 
     /**
@@ -450,12 +393,7 @@ public class YandexSmartHomeGateway {
      * @return YandexSmartHomeResponse with error status
      */
     private YandexSmartHomeResponse createErrorResponse(String requestId, String errorMessage) {
-        return YandexSmartHomeResponse.builder()
-                .requestId(requestId)
-                .status("error")
-                .errorCode("INTERNAL_ERROR")
-                .errorMessage(errorMessage)
-                .build();
+        return new YandexSmartHomeResponse(requestId, "error", "INTERNAL_ERROR", errorMessage, null);
     }
 
     /**
@@ -464,9 +402,7 @@ public class YandexSmartHomeGateway {
      * @return A StatusInfo object with the given status.
      */
     private YandexSmartHomeResponse.Payload.Device.StatusInfo createStatusInfo() {
-        return YandexSmartHomeResponse.Payload.Device.StatusInfo.builder()
-                .reportable(true)
-                .build();
+        return new YandexSmartHomeResponse.Payload.Device.StatusInfo(true);
     }
 
     /**
@@ -479,11 +415,6 @@ public class YandexSmartHomeGateway {
      */
     private YandexSmartHomeResponse.Payload.Device.DeviceInfo createDeviceInfo(String model, String hwVersion,
                                                                                String swVersion) {
-        return YandexSmartHomeResponse.Payload.Device.DeviceInfo.builder()
-                .manufacturer("General Satellite")
-                .model(model)
-                .hwVersion(hwVersion)
-                .swVersion(swVersion)
-                .build();
+        return new YandexSmartHomeResponse.Payload.Device.DeviceInfo("General Satellite", model, hwVersion, swVersion);
     }
 }

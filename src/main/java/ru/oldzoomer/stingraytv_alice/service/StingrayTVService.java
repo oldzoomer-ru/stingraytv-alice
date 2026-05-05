@@ -1,17 +1,13 @@
 package ru.oldzoomer.stingraytv_alice.service;
 
-import java.util.Map;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -32,7 +28,7 @@ public class StingrayTVService {
             String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 log.warn("Device base URL is null, returning offline state");
-                return PowerState.builder().state("offline").build();
+                return new PowerState("offline");
             }
 
             log.debug("Getting power state from device at URL: {}", baseUrl + "/power");
@@ -47,15 +43,11 @@ public class StingrayTVService {
                 return response;
             } else {
                 log.warn("Received null or empty power state response, defaulting to offline");
-                return PowerState.builder()
-                        .state("offline")
-                        .build();
+                return new PowerState("offline");
             }
         } catch (Exception e) {
             log.error("Error getting power state from StingrayTV device at URL: {}", device.baseUrl(), e);
-            return PowerState.builder()
-                    .state("offline")
-                    .build();
+            return new PowerState("offline");
         }
     }
 
@@ -103,7 +95,7 @@ public class StingrayTVService {
             String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 log.warn("Device base URL is null, returning default volume state");
-                return VolumeState.builder().state(0).build();
+                return new VolumeState(20, 0);
             }
 
             log.debug("Getting volume state from device at URL: {}", baseUrl + "/volume");
@@ -118,15 +110,11 @@ public class StingrayTVService {
                 return response;
             } else {
                 log.warn("Received null volume state response, defaulting to 0");
-                return VolumeState.builder()
-                        .state(0)
-                        .build();
+                return new VolumeState(20, 0);
             }
         } catch (Exception e) {
             log.error("Error getting volume state from StingrayTV device at URL: {}", device.baseUrl(), e);
-            return VolumeState.builder()
-                    .state(0)
-                    .build();
+            return new VolumeState(20, 0);
         }
     }
 
@@ -172,7 +160,7 @@ public class StingrayTVService {
             String baseUrl = device.baseUrl();
             if (baseUrl == null) {
                 log.warn("Device base URL is null, returning default channel state");
-                return ChannelState.builder().channelNumber(0).channelListId("Unknown").build();
+                return new ChannelState(0, "Unknown");
             }
 
             log.debug("Getting current channel from device at URL: {}", baseUrl + "/channels/current");
@@ -189,17 +177,11 @@ public class StingrayTVService {
                 return response;
             } else {
                 log.warn("Received null channel state response, defaulting to channel 0");
-                return ChannelState.builder()
-                        .channelNumber(0)
-                        .channelListId("Unknown")
-                        .build();
+                return new ChannelState(0, "Unknown");
             }
         } catch (Exception e) {
             log.error("Error getting current channel from StingrayTV device at URL: {}", device.baseUrl(), e);
-            return ChannelState.builder()
-                    .channelNumber(0)
-                    .channelListId("Unknown")
-                    .build();
+            return new ChannelState(0, "Unknown");
         }
     }
 
@@ -227,7 +209,7 @@ public class StingrayTVService {
 
             Map<String, Object> requestBody = Map.of(
                     "channelNumber", channelNumber,
-                    "channelListId", channelState.getChannelListId()
+                    "channelListId", channelState.channelListId()
             );
 
             restClient.put()
@@ -307,26 +289,12 @@ public class StingrayTVService {
         }
     }
 
-    @Builder
-    @AllArgsConstructor
-    @Data
-    public static class PowerState {
-        private String state;
+    public record PowerState(String state) {
     }
 
-    @Builder
-    @AllArgsConstructor
-    @Data
-    public static class VolumeState {
-        private int max;
-        private int state;
+    public record VolumeState(int max, int state) {
     }
 
-    @Builder
-    @AllArgsConstructor
-    @Data
-    public static class ChannelState {
-        private int channelNumber;
-        private String channelListId;
+    public record ChannelState(int channelNumber, String channelListId) {
     }
 }

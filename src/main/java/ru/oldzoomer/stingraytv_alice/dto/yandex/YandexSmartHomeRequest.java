@@ -1,33 +1,30 @@
 package ru.oldzoomer.stingraytv_alice.dto.yandex;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-
-@Data
-public class YandexSmartHomeRequest {
+public record YandexSmartHomeRequest(
     @Valid
-    private Payload payload;
-
-    @Data
-    public static class Payload {
+    Payload payload
+) {
+    public record Payload(
         @JsonProperty("user_id")
-        private String userId;
+        String userId,
 
         @NotNull
-        private List<@Valid Device> devices;
-
-        @Data
-        public static class Device {
+        @Valid
+        List<@Valid Device> devices
+    ) {
+        public record Device(
             @NotNull
-            private String id;
+            String id,
 
-            private List<Map<String, Object>> capabilities;
+            List<Map<String, Object>> capabilities
+        ) {
         }
     }
 }

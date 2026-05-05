@@ -50,10 +50,7 @@ class YandexSmartHomeControllerTest {
     void getUserDevices_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
         String requestId = "unlink-request-id-123";
-        YandexSmartHomeResponse response = YandexSmartHomeResponse.builder()
-                .requestId(requestId)
-                .status("ok")
-                .build();
+        YandexSmartHomeResponse response = new YandexSmartHomeResponse(requestId, "ok", null, null, null);
 
         when(smartHomeService.processUserDevicesRequest(requestId)).thenReturn(response);
 
@@ -68,13 +65,10 @@ class YandexSmartHomeControllerTest {
     @Test
     void queryDeviceStates_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
-        YandexSmartHomeRequest request = new YandexSmartHomeRequest();
+        YandexSmartHomeRequest request = new YandexSmartHomeRequest(null);
         String requestId = "unlink-request-id-123";
 
-        YandexSmartHomeResponse response = YandexSmartHomeResponse.builder()
-                .requestId(requestId)
-                .status("ok")
-                .build();
+        YandexSmartHomeResponse response = new YandexSmartHomeResponse(requestId, "ok", null, null, null);
 
         when(smartHomeService.processDeviceQueryRequest(any(YandexSmartHomeRequest.class), eq(requestId))).thenReturn(response);
 
@@ -92,13 +86,10 @@ class YandexSmartHomeControllerTest {
     @Test
     void executeDeviceAction_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
-        YandexSmartHomeRequest request = new YandexSmartHomeRequest();
+        YandexSmartHomeRequest request = new YandexSmartHomeRequest(null);
         String requestId = "unlink-request-id-123";
 
-        YandexSmartHomeResponse response = YandexSmartHomeResponse.builder()
-                .requestId(requestId)
-                .status("ok")
-                .build();
+        YandexSmartHomeResponse response = new YandexSmartHomeResponse(requestId, "ok", null, null, null);
 
         when(smartHomeService.processDeviceActionRequest(any(YandexSmartHomeRequest.class), eq(requestId))).thenReturn(response);
 
@@ -123,11 +114,9 @@ class YandexSmartHomeControllerTest {
     @Test
     void unlinkUser_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
-        YandexSmartHomeRequest request = new YandexSmartHomeRequest();
+        YandexSmartHomeRequest request = new YandexSmartHomeRequest(null);
         String requestId = "unlink-request-id-123";
-        UserUnlinkResponse response = UserUnlinkResponse.builder()
-                .requestId(requestId)
-                .build();
+        UserUnlinkResponse response = new UserUnlinkResponse(requestId);
 
         when(smartHomeService.processUserUnlinkRequest(requestId)).thenReturn(response);
 
