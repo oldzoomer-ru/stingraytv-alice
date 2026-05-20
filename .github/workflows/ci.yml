@@ -3,7 +3,6 @@ name: StingrayTV Alice build and publish
 on:
   push:
     branches: [ "master" ]
-    tags: [ 'b*', 's*' ]
   workflow_dispatch:
 
 concurrency:
