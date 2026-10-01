@@ -50,14 +50,14 @@ public class SecurityConfig {
                         jwt -> jwt.jwtAuthenticationConverter(new KeycloakConverter())
                 ))
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, authException) -> {
+                        .authenticationEntryPoint((request, response, _) -> {
                             log.warn("Authentication failed for request: {} {}",
                                     request.getMethod(), request.getRequestURI());
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
                             response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}");
                         })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        .accessDeniedHandler((request, response, _) -> {
                             log.warn("Access denied for request: {} {}",
                                     request.getMethod(), request.getRequestURI());
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
