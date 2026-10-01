@@ -41,7 +41,8 @@ class StingrayTVServiceTest {
     @InjectMocks
     private StingrayTVService stingrayTVService;
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     void getPowerState_WhenDeviceFound_ReturnsPowerState() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
@@ -130,7 +131,8 @@ class StingrayTVServiceTest {
         assertThat(result).isFalse();
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     void getVolumeState_WhenDeviceFound_ReturnsVolumeState() {
         // Arrange
         when(device.baseUrl()).thenReturn(BASE_URL);
@@ -226,7 +228,8 @@ class StingrayTVServiceTest {
         assertThat(result).isFalse();
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     @Disabled("Disabled for now, because it's not possible to mock the WebClient")
     void getCurrentChannel_WhenDeviceFound_ReturnsChannelState() {
         // Arrange
