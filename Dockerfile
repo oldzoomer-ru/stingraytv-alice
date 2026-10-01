@@ -1,13 +1,14 @@
+#
+# GraalVM native image build for StingrayTV Alice.
+#
+
 ARG BUILD_HOME=/build
 
 #
-# Gradle image for the build stage.
+# Stage 1: Alpine-based GraalVM JDK with native-image tool
 #
-FROM eclipse-temurin:21-jdk-alpine AS build-image
+FROM ghcr.io/graalvm/native-image-community:25 AS build-image
 
-#
-# Set the working directory.
-#
 ARG BUILD_HOME
 ENV APP_HOME=$BUILD_HOME
 WORKDIR $APP_HOME
@@ -27,28 +28,25 @@ RUN ./gradlew dependencies --no-daemon
 COPY src/ $APP_HOME/src/
 
 #
-# Build the specified service
+# Build the native image
 #
-RUN ./gradlew :build --no-daemon -x test;
+RUN ./gradlew :nativeCompile --no-daemon;
 
 #
-# Java image for the application to run in.
+# Stage 2: distroless for the native binary to run in.
 #
-FROM gcr.io/distroless/java25-debian13:nonroot
+FROM gcr.io/distroless/base-debian13:nonroot
 
-#
-# Build arguments
-#
 ARG BUILD_HOME
 ARG SERVICE_NAME
 ENV APP_HOME=$BUILD_HOME
 
 #
-# Copy the jar file and name it app.jar
+# Copy the native executable
 #
-COPY --from=build-image $APP_HOME/build/libs/stingraytv-alice-1.0.jar app.jar
+COPY --from=build-image $APP_HOME/build/native/nativeCompile/stingraytv-alice app
 
 #
 # The command to run when the container starts.
 #
-CMD ["app.jar"]
+CMD ["app"]
