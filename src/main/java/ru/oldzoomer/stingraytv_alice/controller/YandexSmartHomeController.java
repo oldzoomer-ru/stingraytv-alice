@@ -35,7 +35,7 @@ import ru.oldzoomer.stingraytv_alice.service.YandexSmartHomeService;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1.0")
+@RequestMapping("/v1.0/user")
 @PreAuthorize("isAuthenticated()")
 public class YandexSmartHomeController {
 
@@ -48,7 +48,7 @@ public class YandexSmartHomeController {
      * @param requestId unique identifier for the request
      * @return ResponseEntity with device discovery response
      */
-    @GetMapping("/user/devices")
+    @GetMapping("/devices")
     public ResponseEntity<@NonNull YandexSmartHomeResponse> getUserDevices(@RequestHeader("X-Request-Id") String requestId) {
         log.debug("Processing device discovery request with ID: {}", requestId);
         YandexSmartHomeResponse response = smartHomeService.processUserDevicesRequest(requestId);
@@ -63,7 +63,7 @@ public class YandexSmartHomeController {
      * @param requestId unique identifier for the request
      * @return ResponseEntity with device state query response
      */
-    @PostMapping("/user/devices/query")
+    @PostMapping("/devices/query")
     public ResponseEntity<@NonNull YandexSmartHomeResponse> queryDeviceStates(
             @Valid @RequestBody YandexSmartHomeRequest request,
             @RequestHeader("X-Request-Id") String requestId) {
@@ -80,7 +80,7 @@ public class YandexSmartHomeController {
      * @param requestId unique identifier for the request
      * @return ResponseEntity with device action response
      */
-    @PostMapping("/user/devices/action")
+    @PostMapping("/devices/action")
     public ResponseEntity<@NonNull YandexSmartHomeResponse> executeDeviceAction(
             @Valid @RequestBody YandexSmartHomeRequest request,
             @RequestHeader("X-Request-Id") String requestId) {
@@ -97,7 +97,7 @@ public class YandexSmartHomeController {
      * @param requestId unique identifier for the request
      * @return ResponseEntity with user unlink response
      */
-    @PostMapping("/user/unlink")
+    @PostMapping("/unlink")
     public ResponseEntity<@NonNull UserUnlinkResponse> unlinkUser(
             @RequestHeader("X-Request-Id") String requestId) {
         log.debug("Processing user unlink request with ID: {}", requestId);
