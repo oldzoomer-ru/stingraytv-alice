@@ -10,6 +10,8 @@ import ru.oldzoomer.stingraytv_alice.enums.QueryTypes;
 import ru.oldzoomer.stingraytv_alice.service.StingrayDeviceDiscoveryService;
 import ru.oldzoomer.stingraytv_alice.service.StingrayTVService;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +47,7 @@ public class YandexSmartHomeGateway {
             return handleDevicesRequest(request, requestId, userId, type);
         } catch (Exception e) {
             log.error("Error processing Yandex Smart Home request: {}", requestId, e);
-            return createErrorResponse(requestId, "Internal server error");
+            return createErrorResponse(requestId, "INTERNAL_ERROR", "Internal server error");
         }
     }
 
@@ -67,7 +69,7 @@ public class YandexSmartHomeGateway {
             case DEVICES_QUERY -> handleQueryRequest(requestId, userId);
             case DEVICES_ACTION -> handleActionRequest(request, requestId, userId);
             case DEVICES_DISCOVERY -> handleDiscoveryRequest(requestId, userId);
-            case null -> createErrorResponse(requestId, "Unrecognized request type");
+            case null -> createErrorResponse(requestId, "INTERNAL_ERROR", "Unrecognized request type");
         };
     }
 
@@ -82,17 +84,21 @@ public class YandexSmartHomeGateway {
     private YandexSmartHomeResponse handleDiscoveryRequest(String requestId, String userId) {
         log.info("Handling device discovery request for user: {}", userId);
 
+        String serialNumber = stingrayDevice != null ? stingrayDevice.serialNumber() : "unknown";
+        String model = stingrayDevice != null ? stingrayDevice.model() : "Unknown";
+        String hardwareId = stingrayDevice != null ? stingrayDevice.hardwareId() : null;
+        String softwareVersion = stingrayDevice != null ? stingrayDevice.softwareVersion() : null;
+
         YandexSmartHomeResponse.Payload.Device device = new YandexSmartHomeResponse.Payload.Device(
-                stingrayDevice.serialNumber(),
-                stingrayDevice.model(),
+                serialNumber,
+                model,
                 stingrayConfigurationProperties.getDeviceDescription(),
                 stingrayConfigurationProperties.getRoom(),
                 "devices.types.media_device.receiver",
                 createDeviceCapabilities(),
                 null,
                 createStatusInfo(),
-                createDeviceInfo(stingrayDevice.model(),
-                        stingrayDevice.hardwareId(), stingrayDevice.softwareVersion())
+                createDeviceInfo(model, hardwareId, softwareVersion)
         );
 
         YandexSmartHomeResponse.Payload payload = new YandexSmartHomeResponse.Payload(
@@ -115,8 +121,9 @@ public class YandexSmartHomeGateway {
         log.info("Handling device query request for user: {}", userId);
 
         try {
+            String serialNumber = stingrayDevice != null ? stingrayDevice.serialNumber() : "unknown";
             YandexSmartHomeResponse.Payload.Device device = new YandexSmartHomeResponse.Payload.Device(
-                    stingrayDevice.serialNumber(),
+                    serialNumber,
                     null,
                     null,
                     null,
@@ -136,7 +143,7 @@ public class YandexSmartHomeGateway {
 
         } catch (Exception e) {
             log.error("Error handling query request", e);
-            return createErrorResponse(requestId, "Failed to query device state");
+            return createErrorResponse(requestId, "INTERNAL_ERROR", "Failed to query device state");
         }
     }
 
@@ -155,21 +162,39 @@ public class YandexSmartHomeGateway {
 
         try {
             if (request.payload().devices() == null || request.payload().devices().isEmpty()) {
-                return createErrorResponse(requestId, "No devices specified in action request");
+                return createErrorResponse(requestId, "INVALID_REQUEST", "No devices specified in action request");
             }
 
             // Process actions for each device
+            List<String> errors = new ArrayList<>();
             for (YandexSmartHomeRequest.Payload.Device device : request.payload().devices()) {
-                if (stingrayDevice.serialNumber().equals(device.id())) {
-                    return processDeviceActions(device, requestId, userId);
+                if (stingrayDevice != null && stingrayDevice.serialNumber().equals(device.id())) {
+                    List<String> actionErrors = processDeviceActions(device);
+                    if (!actionErrors.isEmpty()) {
+                        errors.addAll(actionErrors);
+                    }
                 }
             }
 
-            return createErrorResponse(requestId, "Device not found");
+            if (errors.isEmpty()) {
+                return new YandexSmartHomeResponse(
+                        requestId,
+                        "ok",
+                        null,
+                        null,
+                        new YandexSmartHomeResponse.Payload(
+                                userId,
+                                List.of(createUpdatedDeviceState())
+                        )
+                );
+            } else {
+                String errorMessage = String.join("; ", errors);
+                return createErrorResponse(requestId, "DEVICE_FAILED", errorMessage);
+            }
 
         } catch (Exception e) {
             log.error("Error handling action request", e);
-            return createErrorResponse(requestId, "Failed to execute device action");
+            return createErrorResponse(requestId, "INTERNAL_ERROR", "Failed to execute device action");
         }
     }
 
@@ -178,42 +203,47 @@ public class YandexSmartHomeGateway {
      * Executes individual capability actions for the device.
      *
      * @param device the device to process actions for
-     * @param requestId unique identifier for the request
-     * @param userId identifier of the authenticated user
-     * @return YandexSmartHomeResponse with action execution results
+     * @return list of error messages for failed actions, empty if all succeeded
      */
-    private YandexSmartHomeResponse processDeviceActions(YandexSmartHomeRequest.Payload.Device device,
-                                                         String requestId, String userId) {
-        boolean allActionsSuccessful = true;
+    private List<String> processDeviceActions(YandexSmartHomeRequest.Payload.Device device) {
+        List<String> errors = new ArrayList<>();
 
         if (device.capabilities() != null) {
             for (Map<String, Object> capability : device.capabilities()) {
                 if (capability.containsKey("type") && capability.containsKey("state")) {
                     String capabilityType = (String) capability.get("type");
-                    Object actionValue = capability.get("state");
+                    Map<String, Object> actionMap = extractActionMap(capability.get("state"));
 
-                    boolean actionResult = executeDeviceAction(capabilityType, actionValue);
-                    if (!actionResult) {
-                        allActionsSuccessful = false;
+                    if (actionMap == null) {
+                        errors.add("Invalid action format for capability: " + capabilityType);
+                        continue;
+                    }
+
+                    String instance = (String) actionMap.get("instance");
+                    String actionError = executeDeviceAction(capabilityType, actionMap, instance);
+                    if (actionError != null) {
+                        errors.add(actionError);
                     }
                 }
             }
         }
 
-        if (allActionsSuccessful) {
-            return new YandexSmartHomeResponse(
-                    requestId,
-                    "ok",
-                    null,
-                    null,
-                    new YandexSmartHomeResponse.Payload(
-                            userId,
-                            List.of(createUpdatedDeviceState())
-                    )
-            );
-        } else {
-            return createErrorResponse(requestId, "Some actions failed to execute");
+        return errors;
+    }
+
+    /**
+     * Safely extracts an action map from the action value.
+     * Returns null if the value is not a Map.
+     *
+     * @param actionValue the raw action value from the Yandex request
+     * @return the action map, or null if not a valid Map
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> extractActionMap(Object actionValue) {
+        if (actionValue instanceof Map) {
+            return (Map<String, Object>) actionValue;
         }
+        return null;
     }
 
     /**
@@ -221,94 +251,93 @@ public class YandexSmartHomeGateway {
      * Routes actions to appropriate handlers based on capability type.
      *
      * @param capabilityType type of capability being executed
-     * @param actionValue value for the action
-     * @return true if action was successful, false otherwise
+     * @param actionMap parsed action parameters
+     * @param instance the capability instance (e.g., "volume", "mute")
+     * @return error message if failed, null if successful
      */
-    private boolean executeDeviceAction(String capabilityType, Object actionValue) {
+    private String executeDeviceAction(String capabilityType, Map<String, Object> actionMap, String instance) {
         try {
-            if (actionValue instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> actionMap = (Map<String, Object>) actionValue;
-                String instance = (String) actionMap.get("instance");
-
-                return switch (capabilityType) {
-                    case "devices.capabilities.on_off" -> handlePowerAction(actionValue);
-                    case "devices.capabilities.range" -> handleRangeAction(instance, actionValue);
-                    case "devices.capabilities.toggle" -> handleToggleAction(instance);
-                    default -> {
-                        log.warn("Unsupported capability type: {}", capabilityType);
-                        yield false;
-                    }
-                };
-            }
-            log.warn("Invalid action value format for capability: {}", capabilityType);
-            return false;
+            return switch (capabilityType) {
+                case "devices.capabilities.on_off" -> handlePowerAction(actionMap);
+                case "devices.capabilities.range" -> handleRangeAction(instance, actionMap);
+                case "devices.capabilities.toggle" -> handleToggleAction(instance);
+                default -> {
+                    log.warn("Unsupported capability type: {}", capabilityType);
+                    yield "Unsupported capability: " + capabilityType;
+                }
+            };
         } catch (Exception e) {
             log.error("Error executing device action for capability: {}", capabilityType, e);
-            return false;
+            return "Error executing " + capabilityType;
         }
     }
 
     /**
      * Handles power state actions (on/off).
      *
-     * @param actionValue value for the power action
-     * @return true if action was successful, false otherwise
+     * @param actionMap the action parameters map
+     * @return error message if failed, null if successful
      */
-    private boolean handlePowerAction(Object actionValue) {
-        if (actionValue instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> actionMap = (Map<String, Object>) actionValue;
-            if (actionMap.containsKey("value")) {
-                boolean powerOn = Boolean.TRUE.equals(actionMap.get("value"));
-                return stingrayTVService.setPowerState(powerOn);
-            }
+    private String handlePowerAction(Map<String, Object> actionMap) {
+        if (actionMap.containsKey("value")) {
+            boolean powerOn = Boolean.TRUE.equals(actionMap.get("value"));
+            StingrayTVService.ActionResult result = stingrayTVService.setPowerState(powerOn);
+            return result.errorMessage();
         }
-        return false;
+        return "Invalid power action value";
     }
 
     /**
      * Handles range actions (volume, channel).
      *
      * @param instance type of range action (volume, channel)
-     * @param actionValue value for the action
-     * @return true if action was successful, false otherwise
+     * @param actionMap the action parameters map
+     * @return error message if failed, null if successful
      */
-    private boolean handleRangeAction(String instance, Object actionValue) {
-        if (actionValue instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> actionMap = (Map<String, Object>) actionValue;
-            if (actionMap.containsKey("value")) {
-                int value = ((Number) actionMap.get("value")).intValue();
+    private String handleRangeAction(String instance, Map<String, Object> actionMap) {
+        if (actionMap.containsKey("value")) {
+            Number value = (Number) actionMap.get("value");
+            int intValue = value.intValue();
 
-                return switch (instance) {
-                    case "volume" -> stingrayTVService.setVolume(value);
-                    case "channel" -> stingrayTVService.changeChannel(value);
-                    default -> {
-                        log.warn("Unsupported range instance: {}", instance);
-                        yield false;
-                    }
-                };
-            }
+            return switch (instance) {
+                case "volume" -> {
+                    StingrayTVService.ActionResult result = stingrayTVService.setVolume(intValue);
+                    yield result.errorMessage();
+                }
+                case "channel" -> {
+                    StingrayTVService.ActionResult result = stingrayTVService.changeChannel(intValue);
+                    yield result.errorMessage();
+                }
+                default -> {
+                    log.warn("Unsupported range instance: {}", instance);
+                    yield "Unsupported range instance: " + instance;
+                }
+            };
         }
-        return false;
+        return "Invalid range action value";
     }
 
     /**
      * Handles toggle actions (mute, pause).
      *
      * @param instance type of toggle action (mute, pause)
-     * @return true if action was successful, false otherwise
+     * @return error message if failed, null if successful
      */
-    private boolean handleToggleAction(String instance) {
+    private String handleToggleAction(String instance) {
         return switch (instance) {
-                    case "mute" -> stingrayTVService.mute();
-                    case "pause" -> stingrayTVService.pause();
-                    default -> {
-                        log.warn("Unsupported toggle instance: {}", instance);
-                        yield false;
-                    }
-                };
+            case "mute" -> {
+                StingrayTVService.ActionResult result = stingrayTVService.mute();
+                yield result.errorMessage();
+            }
+            case "pause" -> {
+                StingrayTVService.ActionResult result = stingrayTVService.pause();
+                yield result.errorMessage();
+            }
+            default -> {
+                log.warn("Unsupported toggle instance: {}", instance);
+                yield "Unsupported toggle instance: " + instance;
+            }
+        };
     }
 
     /**
@@ -334,6 +363,31 @@ public class YandexSmartHomeGateway {
     }
 
     /**
+     * Creates a single capability entry for the given type, instance, and state.
+     *
+     * @param type the capability type
+     * @param instance the capability instance (e.g., "on", "volume", "channel")
+     * @param state the state map
+     * @return a Capability record
+     */
+    private YandexSmartHomeResponse.Payload.Device.Capability capability(
+            String type, String instance, Map<String, Object> state) {
+        return new YandexSmartHomeResponse.Payload.Device.Capability(
+                type, false, null,
+                instance != null ? mergeState(state, Map.of("instance", instance)) : state
+        );
+    }
+
+    /**
+     * Merges an instance key into a state map if not already present.
+     */
+    private Map<String, Object> mergeState(Map<String, Object> state, Map<String, Object> extra) {
+        Map<String, Object> merged = new LinkedHashMap<>(state);
+        merged.putAll(extra);
+        return merged;
+    }
+
+    /**
      * Creates the current capability states for device query requests.
      * Returns the current state of device capabilities.
      *
@@ -345,12 +399,12 @@ public class YandexSmartHomeGateway {
         StingrayTVService.ChannelState channelState = stingrayTVService.getCurrentChannel();
 
         return List.of(
-                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.on_off", false,
-                        null, Map.of("instance", "on", "value", "on".equals(powerState.state()))),
-                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
-                        null, Map.of("instance", "channel", "value", channelState.channelNumber())),
-                new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
-                        null, Map.of("instance", "volume", "value", volumeState.state()))
+                capability("devices.capabilities.on_off", "on",
+                        Map.of("value", "on".equals(powerState.state()))),
+                capability("devices.capabilities.range", "channel",
+                        Map.of("value", channelState.channelNumber())),
+                capability("devices.capabilities.range", "volume",
+                        Map.of("value", volumeState.state()))
         );
     }
 
@@ -368,16 +422,16 @@ public class YandexSmartHomeGateway {
                 null,
                 null,
                 List.of(
-                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.on_off", false,
-                                null, Map.of("instance", "on", "action_result", Map.of("status", "DONE"))),
-                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
-                                null, Map.of("instance", "channel", "action_result", Map.of("status", "DONE"))),
-                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.range", false,
-                                null, Map.of("instance", "volume", "action_result", Map.of("status", "DONE"))),
-                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.toggle", false,
-                                null, Map.of("instance", "mute", "action_result", Map.of("status", "DONE"))),
-                        new YandexSmartHomeResponse.Payload.Device.Capability("devices.capabilities.toggle", false,
-                                null, Map.of("instance", "pause", "action_result", Map.of("status", "DONE")))
+                        capability("devices.capabilities.on_off", "on",
+                                Map.of("action_result", Map.of("status", "DONE"))),
+                        capability("devices.capabilities.range", "channel",
+                                Map.of("action_result", Map.of("status", "DONE"))),
+                        capability("devices.capabilities.range", "volume",
+                                Map.of("action_result", Map.of("status", "DONE"))),
+                        capability("devices.capabilities.toggle", "mute",
+                                Map.of("action_result", Map.of("status", "DONE"))),
+                        capability("devices.capabilities.toggle", "pause",
+                                Map.of("action_result", Map.of("status", "DONE")))
                 ),
                 null,
                 null,
@@ -389,11 +443,12 @@ public class YandexSmartHomeGateway {
      * Creates an error response for failed requests.
      *
      * @param requestId unique identifier for the request
-     * @param errorMessage error message to include in response
+     * @param errorCode structured error code per Yandex Smart Home protocol
+     * @param errorMessage human-readable error message
      * @return YandexSmartHomeResponse with error status
      */
-    private YandexSmartHomeResponse createErrorResponse(String requestId, String errorMessage) {
-        return new YandexSmartHomeResponse(requestId, "error", "INTERNAL_ERROR", errorMessage, null);
+    private YandexSmartHomeResponse createErrorResponse(String requestId, String errorCode, String errorMessage) {
+        return new YandexSmartHomeResponse(requestId, "error", errorCode, errorMessage, null);
     }
 
     /**

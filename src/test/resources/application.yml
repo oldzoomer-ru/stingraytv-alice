@@ -8,8 +8,12 @@ app:
     room: Зал
   security:
     jwt:
+      jwk-url: http://localhost/auth/realms/test/protocol/openid-connect/certs
       jwk-connection-timeout: 3
       jwk-read-timeout: 3
+  rest-client:
+    connect-timeout: 3000
+    read-timeout: 3000
 
 logging:
   level:

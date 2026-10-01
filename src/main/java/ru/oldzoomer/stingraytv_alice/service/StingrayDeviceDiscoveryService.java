@@ -2,6 +2,9 @@ package ru.oldzoomer.stingraytv_alice.service;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +16,7 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
@@ -35,7 +39,16 @@ public class StingrayDeviceDiscoveryService {
 
     private static final String STINGRAY_SERVICE_TYPE = "_stingray-remote._tcp.local.";
     private final Map<String, Device> discoveredDevices = new ConcurrentHashMap<>();
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient = createDiscoveryClient();
+
+    private static RestClient createDiscoveryClient() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(3000);
+        factory.setReadTimeout(3000);
+        return RestClient.builder()
+                .requestFactory(factory)
+                .build();
+    }
 
     /**
      * Discover StingrayTV devices on the local network using mDNS.
@@ -60,7 +73,8 @@ public class StingrayDeviceDiscoveryService {
 
         log.info("Starting mDNS discovery for StingrayTV devices...");
         try {
-            JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+            InetAddress bindAddress = resolveBindAddress();
+            JmDNS jmdns = JmDNS.create(bindAddress);
             CountDownLatch latch = new CountDownLatch(1);
 
             jmdns.addServiceListener(STINGRAY_SERVICE_TYPE, new ServiceListener() {
@@ -120,7 +134,44 @@ public class StingrayDeviceDiscoveryService {
     }
 
     /**
-     * Check if device is reachable at the given URL using Spring WebClient.
+     * Resolves a suitable bind address for JmDNS.
+     * Prefers a non-loopback, non-multicast IPv4 address bound to a local network
+     * interface (e.g., eth0, wlan0). Falls back to {@link InetAddress#getLocalHost()}
+     * if no suitable interface is found.
+     *
+     * @return an InetAddress suitable for JmDNS binding
+     */
+    private InetAddress resolveBindAddress() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (!iface.isUp() || iface.isLoopback() || iface.isPointToPoint()) {
+                    continue;
+                }
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (!addr.isLoopbackAddress()) {
+                        log.debug("Using network interface address for JmDNS: {} ({})",
+                                addr.getHostAddress(), iface.getName());
+                        return addr;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Could not enumerate network interfaces, falling back to localhost");
+        }
+        try {
+            return InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            log.error("Could not resolve local host address", e);
+            throw new RuntimeException("Cannot determine local host address", e);
+        }
+    }
+
+    /**
+     * Check if device is reachable at the given URL using RestClient.
      * Validates that the device is responding correctly to API requests.
      *
      * @param receiverIp IP address of the device

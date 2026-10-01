@@ -23,8 +23,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Converts a Keycloak JWT into a Spring Security authentication token.
+ * Extracts roles from both {@code realm_access.roles} and
+ * {@code resource_access.<client_id>.roles} claims.
+ */
 @Component
 public class KeycloakConverter implements Converter<@NonNull Jwt, AbstractAuthenticationToken> {
+
+    // Shared ObjectMapper — thread-safe and expensive to create
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     @NullMarked
@@ -35,21 +43,52 @@ public class KeycloakConverter implements Converter<@NonNull Jwt, AbstractAuthen
     }
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
-        if (jwt.getClaim("realm_access") != null) {
-            Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-            ObjectMapper mapper = new ObjectMapper();
-            List<String> roles = mapper.convertValue(realmAccess.get("roles"), new TypeReference<>() {
-            });
-            List<GrantedAuthority> authorities = new ArrayList<>();
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        extractRealmRoles(jwt, authorities);
+        extractResourceRoles(jwt, authorities);
+        return authorities;
+    }
 
+    private void extractRealmRoles(Jwt jwt, List<GrantedAuthority> authorities) {
+        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+        if (realmAccess == null) {
+            return;
+        }
+
+        List<String> roles = MAPPER.convertValue(realmAccess.get("roles"), new TypeReference<>() {
+        });
+
+        if (roles != null) {
             for (String role : roles) {
                 authorities.add(new SimpleGrantedAuthority(role));
             }
-
-            return authorities;
         }
-        return new ArrayList<>();
+    }
+
+    /**
+     * Extracts roles from resource_access.<client_id>.roles claims.
+     * Keycloak stores client-specific roles under resource_access,
+     * distinct from realm-level roles in realm_access.
+     */
+    private void extractResourceRoles(Jwt jwt, List<GrantedAuthority> authorities) {
+        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+        if (resourceAccess == null) {
+            return;
+        }
+
+        for (Object clientEntry : resourceAccess.values()) {
+            if (clientEntry instanceof Map<?, ?>) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> clientData = (Map<String, Object>) clientEntry;
+                List<String> roles = MAPPER.convertValue(clientData.get("roles"), new TypeReference<>() {
+                });
+
+                if (roles != null) {
+                    for (String role : roles) {
+                        authorities.add(new SimpleGrantedAuthority(role));
+                    }
+                }
+            }
+        }
     }
 }
-
-

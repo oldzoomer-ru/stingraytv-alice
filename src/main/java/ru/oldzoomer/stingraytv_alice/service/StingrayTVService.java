@@ -3,20 +3,39 @@ package ru.oldzoomer.stingraytv_alice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 
+/**
+ * Service for communicating with the StingrayTV satellite receiver.
+ * Provides methods for querying device state and sending control commands.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StingrayTVService {
 
     private final RestClient restClient;
-    private final WebClient webClient;
     private final StingrayDeviceDiscoveryService.Device device;
+
+    /**
+     * Result of an action performed on the StingrayTV device.
+     *
+     * @param ok whether the action succeeded
+     * @param errorMessage descriptive error message, null if successful
+     */
+    public record ActionResult(boolean ok, String errorMessage) {
+        public static ActionResult success() {
+            return new ActionResult(true, null);
+        }
+
+        public static ActionResult failure(String message) {
+            return new ActionResult(false, message);
+        }
+    }
 
     /**
      * Gets the current power state of the StingrayTV device.
@@ -24,65 +43,35 @@ public class StingrayTVService {
      * @return PowerState object with the current power state
      */
     public PowerState getPowerState() {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, returning offline state");
-                return new PowerState("offline");
-            }
-
-            log.debug("Getting power state from device at URL: {}", baseUrl + "/power");
-            PowerState response = restClient.get()
-                    .uri(baseUrl + "/power")
-                    .accept(MediaType.APPLICATION_JSON)
-                    .retrieve()
-                    .body(PowerState.class);
-
-            if (response != null && response.state != null) {
-                log.debug("Successfully retrieved power state: {}", response.state);
-                return response;
-            } else {
-                log.warn("Received null or empty power state response, defaulting to offline");
-                return new PowerState("offline");
-            }
-        } catch (Exception e) {
-            log.error("Error getting power state from StingrayTV device at URL: {}", device.baseUrl(), e);
-            return new PowerState("offline");
-        }
+        return executeWithBaseUrl(baseUrl ->
+                restClient.get()
+                        .uri(baseUrl + "/power")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(PowerState.class),
+                "power state",
+                () -> new PowerState("offline")
+        );
     }
 
     /**
      * Sets the power state of the StingrayTV device.
      *
      * @param powerOn true to turn on, false to turn off
-     * @return true if successful, false otherwise
+     * @return ActionResult indicating success or failure
      */
-    public boolean setPowerState(boolean powerOn) {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, cannot set power state");
-                return false;
-            }
-
+    public ActionResult setPowerState(boolean powerOn) {
+        return executeAction("power state", baseUrl -> {
             String powerState = powerOn ? "on" : "off";
             Map<String, String> requestBody = Map.of("state", powerState);
-            
-            log.debug("Setting power state to '{}' on device at URL: {}", powerState, baseUrl + "/power");
-
             restClient.put()
                     .uri(baseUrl + "/power")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
-
             log.info("Successfully set power state to '{}' on device at URL: {}", powerState, baseUrl);
-            return true;
-        } catch (Exception e) {
-            log.error("Error setting power state '{}' on StingrayTV device at URL: {}", powerOn ? "on" : "off", device.baseUrl(), e);
-            return false;
-        }
+        });
     }
 
     /**
@@ -91,63 +80,40 @@ public class StingrayTVService {
      * @return VolumeState object with the current volume state
      */
     public VolumeState getVolumeState() {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, returning default volume state");
-                return new VolumeState(20, 0);
-            }
-
-            log.debug("Getting volume state from device at URL: {}", baseUrl + "/volume");
-            VolumeState response = restClient.get()
-                    .uri(baseUrl + "/volume")
-                    .accept(MediaType.APPLICATION_JSON)
-                    .retrieve()
-                    .body(VolumeState.class);
-
-            if (response != null) {
-                log.debug("Successfully retrieved volume state: {}", response.state);
-                return response;
-            } else {
-                log.warn("Received null volume state response, defaulting to 0");
-                return new VolumeState(20, 0);
-            }
-        } catch (Exception e) {
-            log.error("Error getting volume state from StingrayTV device at URL: {}", device.baseUrl(), e);
-            return new VolumeState(20, 0);
-        }
+        return executeWithBaseUrl(baseUrl ->
+                restClient.get()
+                        .uri(baseUrl + "/volume")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(VolumeState.class),
+                "volume state",
+                () -> new VolumeState(20, 0)
+        );
     }
 
     /**
      * Sets the volume of the StingrayTV device.
      *
-     * @param volume the volume level to set
-     * @return true if successful, false otherwise
+     * @param volume the volume level to set (0-20)
+     * @return ActionResult indicating success or failure
      */
-    public boolean setVolume(int volume) {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, cannot set volume");
-                return false;
-            }
+    public ActionResult setVolume(int volume) {
+        if (volume < 0 || volume > 20) {
+            log.warn("Volume out of range: {}, must be 0-20", volume);
+            return ActionResult.failure("Volume must be between 0 and 20");
+        }
 
+        return executeAction("volume", baseUrl -> {
             Map<String, Integer> requestBody = Map.of("state", volume);
             log.debug("Setting volume to '{}' on device at URL: {}", volume, baseUrl + "/volume");
-
             restClient.put()
                     .uri(baseUrl + "/volume")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
-
             log.info("Successfully set volume to '{}' on device at URL: {}", volume, baseUrl);
-            return true;
-        } catch (Exception e) {
-            log.error("Error setting volume to '{}' on StingrayTV device at URL: {}", volume, device.baseUrl(), e);
-            return false;
-        }
+        });
     }
 
     /**
@@ -156,136 +122,143 @@ public class StingrayTVService {
      * @return ChannelState object with current channel information
      */
     public ChannelState getCurrentChannel() {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, returning default channel state");
-                return new ChannelState(0, "Unknown");
-            }
-
-            log.debug("Getting current channel from device at URL: {}", baseUrl + "/channels/current");
-            ChannelState response = webClient.get()
+        return executeWithBaseUrl(baseUrl -> {
+            ResponseEntity<ChannelState[]> response = restClient.get()
                     .uri(baseUrl + "/channels/current")
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
-                    .bodyToFlux(ChannelState.class)
-                    .blockFirst();
-
-            if (response != null) {
-                log.debug("Successfully retrieved current channel: {} (channel list ID: {})",
-                         response.channelNumber, response.channelListId);
-                return response;
-            } else {
-                log.warn("Received null channel state response, defaulting to channel 0");
-                return new ChannelState(0, "Unknown");
+                    .toEntity(ChannelState[].class);
+            if (response.getBody() != null && response.getBody().length > 0) {
+                return response.getBody()[0];
             }
-        } catch (Exception e) {
-            log.error("Error getting current channel from StingrayTV device at URL: {}", device.baseUrl(), e);
-            return new ChannelState(0, "Unknown");
-        }
+            return null;
+        }, "current channel", () -> new ChannelState(0, "Unknown"));
     }
 
     /**
      * Changes the channel on the StingrayTV device.
      *
-     * @param channelNumber the channel number to change to
-     * @return true if successful, false otherwise
+     * @param channelNumber the channel number to change to (0-9999)
+     * @return ActionResult indicating success or failure
      */
-    public boolean changeChannel(int channelNumber) {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, cannot change channel");
-                return false;
-            }
+    public ActionResult changeChannel(int channelNumber) {
+        if (channelNumber < 0 || channelNumber > 9999) {
+            log.warn("Channel number out of range: {}, must be 0-9999", channelNumber);
+            return ActionResult.failure("Channel number must be between 0 and 9999");
+        }
 
-            if (channelNumber < 0) {
-                log.warn("Invalid channel number: {}, must be >= 0", channelNumber);
-                return false;
-            }
-
-            log.debug("Changing channel to '{}' on device at URL: {}", channelNumber, baseUrl + "/channels/current");
+        return executeAction("channel", baseUrl -> {
             ChannelState channelState = getCurrentChannel();
-
             Map<String, Object> requestBody = Map.of(
                     "channelNumber", channelNumber,
                     "channelListId", channelState.channelListId()
             );
-
+            log.debug("Changing channel to '{}' on device at URL: {}", channelNumber, baseUrl + "/channels/current");
             restClient.put()
                     .uri(baseUrl + "/channels/current")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
-
             log.info("Successfully changed channel to '{}' on device at URL: {}", channelNumber, baseUrl);
-            return true;
-        } catch (Exception e) {
-            log.error("Error changing channel to '{}' on StingrayTV device at URL: {}", channelNumber, device.baseUrl(), e);
-            return false;
-        }
+        });
     }
 
     /**
      * Sends a mute command to the StingrayTV device.
      *
-     * @return true if successful, false otherwise
+     * @return ActionResult indicating success or failure
      */
-    public boolean mute() {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, cannot send mute command");
-                return false;
-            }
-
+    public ActionResult mute() {
+        return executeAction("mute", baseUrl -> {
             Map<String, String> requestBody = Map.of("key", "Volume Mute");
             log.debug("Sending mute command to device at URL: {}", baseUrl + "/input/events");
-
             restClient.post()
                     .uri(baseUrl + "/input/events")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
-
             log.info("Successfully sent mute command to device at URL: {}", baseUrl);
-            return true;
-        } catch (Exception e) {
-            log.error("Error sending mute command to StingrayTV device at URL: {}", device.baseUrl(), e);
-            return false;
-        }
+        });
     }
 
     /**
      * Sends a play/pause command to the StingrayTV device.
      *
-     * @return true if successful, false otherwise
+     * @return ActionResult indicating success or failure
      */
-    public boolean pause() {
-        try {
-            String baseUrl = device.baseUrl();
-            if (baseUrl == null) {
-                log.warn("Device base URL is null, cannot send pause command");
-                return false;
-            }
-
+    public ActionResult pause() {
+        return executeAction("pause", baseUrl -> {
             Map<String, String> requestBody = Map.of("key", "Pause");
             log.debug("Sending pause command to device at URL: {}", baseUrl + "/input/events");
-
             restClient.post()
                     .uri(baseUrl + "/input/events")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestBody)
                     .retrieve()
                     .toBodilessEntity();
-
             log.info("Successfully sent pause command to device at URL: {}", baseUrl);
-            return true;
+        });
+    }
+
+    /**
+     * Executes an action that reads a state value from the device.
+     *
+     * @param <T> the response type
+     * @param requestFn function that performs the REST call given the base URL
+     * @param operationName human-readable name for logging
+     * @param defaultFn supplier of the default value on failure
+     * @return the response or a default value on failure
+     */
+    private <T> T executeWithBaseUrl(java.util.function.Function<String, T> requestFn,
+                                     String operationName,
+                                     java.util.function.Supplier<T> defaultFn) {
+        try {
+            String baseUrl = device.baseUrl();
+            if (baseUrl == null) {
+                log.warn("Device base URL is null, returning default {} state", operationName);
+                return defaultFn.get();
+            }
+
+            log.debug("Getting {} from device at URL: {}", operationName, baseUrl);
+            T response = requestFn.apply(baseUrl);
+
+            if (response != null) {
+                log.debug("Successfully retrieved {}", operationName);
+                return response;
+            } else {
+                log.warn("Received null {} response, defaulting", operationName);
+                return defaultFn.get();
+            }
         } catch (Exception e) {
-            log.error("Error sending pause command to StingrayTV device at URL: {}", device.baseUrl(), e);
-            return false;
+            log.error("Error getting {} from StingrayTV device at URL: {}",
+                    operationName, device != null ? device.baseUrl() : "unknown", e);
+            return defaultFn.get();
+        }
+    }
+
+    /**
+     * Executes an action that sends a command to the device.
+     *
+     * @param actionName human-readable name of the action for logging
+     * @param actionFn function that performs the REST call given the base URL
+     * @return ActionResult indicating success or failure
+     */
+    private ActionResult executeAction(String actionName, java.util.function.Consumer<String> actionFn) {
+        try {
+            String baseUrl = device.baseUrl();
+            if (baseUrl == null) {
+                log.warn("Device base URL is null, cannot {}", actionName);
+                return ActionResult.failure("Device not available");
+            }
+
+            actionFn.accept(baseUrl);
+            return ActionResult.success();
+        } catch (Exception e) {
+            log.error("Error {} on StingrayTV device at URL: {}",
+                    actionName, device != null ? device.baseUrl() : "unknown", e);
+            return ActionResult.failure("Error " + actionName);
         }
     }
 

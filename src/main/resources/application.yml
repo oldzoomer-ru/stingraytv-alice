@@ -21,6 +21,9 @@ app:
     receiver-port: ${STINGRAY_RECEIVER_PORT:50000}
   security:
     jwt:
-      jwk-url: ${JWK_KEY_URL:http://keycloak:8080/auth/realms/stingray/protocol/openid-connect/certs}
+      jwk-url: ${JWK_KEY_URL}
       jwk-connection-timeout: 3
       jwk-read-timeout: 3
+  rest-client:
+    connect-timeout: 3000
+    read-timeout: 3000
