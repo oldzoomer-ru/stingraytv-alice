@@ -31,7 +31,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
-	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.jmdns:jmdns:3.6.3'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -40,7 +39,6 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server-test'
-	implementation 'org.springframework.boot:spring-boot-starter-cache-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
